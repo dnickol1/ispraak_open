@@ -8,13 +8,17 @@ Code unique to iSpraak is open source, but this application does rely on other t
 PHP and mySQL form the backend of the project. 
 
 Google Developer API Credentials for TTS functionality
+
 Microsoft Azure API Credentials for Transcriptions
 
 Google Developer API Credentials for SSO
+
 Microsoft Azure API Credentials for SSO
 
 microsoft-api-php by AdnanHussainTurki
+
 phpMMailer - https://github.com/PHPMailer/PHPMailer 
+
 jpGraph - https://jpgraph.net
 
 Questions about the project, including support requests for installing your own instance can be directed to: help@ispraak.net
