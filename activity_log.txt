@@ -1,0 +1,40 @@
+
+ dan.nickolai@slu.edu (it)(1) honey:  IP: 165.134.222.237 at 01/17/2023 11:52:45
+ Ciao
+ Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 
+
+ dan.nickolai@slu.edu (it)(2) honey:  IP: 165.134.222.237 at 01/17/2023 11:54:15
+ ciao bella
+ Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 
+
+ dan.nickolai@slu.edu (en)(3) honey:  IP: 165.134.222.237 at 01/17/2023 11:55:14
+ ciao bella ciao
+ Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 
+
+ vijay.varshini13@gmail.com (en)(1) honey:  IP: 165.134.212.72 at 01/19/2023 11:56:24
+ Good Morning
+ Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 
+
+ vijay.varshini13@gmail.com (en)(3) honey:  IP: 165.134.212.72 at 01/19/2023 11:57:58
+ Welcome to the class
+ Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 
+
+ vijay.varshini13@gmail.com has successfully email authenticated at 01/19/2023 11:59:03 
+
+ vijay.varshini13@gmail.com has successfully email authenticated at 01/19/2023 11:59:48 
+
+ vijay.varshini13@gmail.com has successfully email authenticated at 01/19/2023 11:59:55 
+
+ vijay.varshini13@gmail.com has successfully email authenticated at 01/19/2023 12:00:16 
+
+ vijay.varshini13@gmail.com has successfully email authenticated at 01/19/2023 12:00:33 
+
+ vijay.varshini13@gmail.com has successfully email authenticated at 01/19/2023 12:00:38 
+
+ vijay.varshini13@gmail.com has successfully email authenticated at 01/19/2023 12:00:45 
+
+ vijay.varshini13@gmail.com has successfully email authenticated at 01/19/2023 12:00:48 
+
+ dan.nickolai@slu.edu has successfully email authenticated at 01/19/2023 17:46:43 
+
+ dan.nickolai@slu.edu has successfully email authenticated at 01/19/2023 17:47:10 

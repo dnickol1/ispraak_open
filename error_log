@@ -1,0 +1,7 @@
+[19-Jan-2023 12:00:49 America/Chicago] PHP Warning:  mysqli_close() expects parameter 1 to be mysqli, null given in /home2/dnickol1/public_html/ispraak_dev/login.php on line 403
+[19-Jan-2023 17:47:23 America/Chicago] PHP Warning:  require_once(jpgraph/jpgraph.php): failed to open stream: No such file or directory in /home2/dnickol1/public_html/ispraak_dev/graphite_ispraak.php on line 2
+[19-Jan-2023 17:47:23 America/Chicago] PHP Fatal error:  require_once(): Failed opening required 'jpgraph/jpgraph.php' (include_path='.:/opt/cpanel/ea-php74/root/usr/share/pear') in /home2/dnickol1/public_html/ispraak_dev/graphite_ispraak.php on line 2
+[19-Jan-2023 17:47:28 America/Chicago] PHP Warning:  require_once(jpgraph/jpgraph.php): failed to open stream: No such file or directory in /home2/dnickol1/public_html/ispraak_dev/graphite_ispraak.php on line 2
+[19-Jan-2023 17:47:28 America/Chicago] PHP Fatal error:  require_once(): Failed opening required 'jpgraph/jpgraph.php' (include_path='.:/opt/cpanel/ea-php74/root/usr/share/pear') in /home2/dnickol1/public_html/ispraak_dev/graphite_ispraak.php on line 2
+[19-Jan-2023 17:47:33 America/Chicago] PHP Warning:  require_once(jpgraph/jpgraph.php): failed to open stream: No such file or directory in /home2/dnickol1/public_html/ispraak_dev/graphite_ispraak.php on line 2
+[19-Jan-2023 17:47:33 America/Chicago] PHP Fatal error:  require_once(): Failed opening required 'jpgraph/jpgraph.php' (include_path='.:/opt/cpanel/ea-php74/root/usr/share/pear') in /home2/dnickol1/public_html/ispraak_dev/graphite_ispraak.php on line 2
