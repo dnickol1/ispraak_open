@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<!--
+
+This page is where the actual ASR functions run and the student speech is transcribed on screen. 
+The core of this code was adapted from the Google Speech API Demo page
+
+https://wicg.github.io/speech-api/
+
+This page runs in an iframe from review.php 
+
+A drop-down appears depending on language specified in cookie (cookie_language) and the default 
+regional dialect selection can be overridden by another cookie  (asr_override)
+
+The transcript is sent from this page as a query string variable to check_for_errors.php 
+
+-->
+
+<head>
+
+<script type="text/javascript" src="javascript/ispraak.js"></script>
+
+<style>
+#info {
+        font-family:Verdana,sans-serif;
+    font-size:small;
+    }
+    #div_start {
+    float: right;
+    }
+    #headline {
+    text-decoration: none
+    }
+    #results {
+    font-family: Verdana; 
+    font-size: medium;
+    border: 1px solid #ddd;
+    padding: 15px;
+    text-align: left;
+    min-height: 150px;
+    }
+    #start_button {
+    border: 0;
+    background-color:transparent;
+    padding: 0;
+    }
+    .interim {
+    color: gray;
+    }
+    .final {
+    color: black;
+    padding-right: 3px;
+    }
+    .button {
+    display: none;
+    background-color:#364563;
+    color:#fff;
+  padding:5px 10px;
+  text-align:center;
+  text-decoration:none;
+  font-size:16px;
+  margin:1px 1px;
+  cursor:pointer;
+  border-radius:5px;
+  -webkit-transition-duration:.4s;
+  transition-duration:.4s
+    }
+    
+    .button:hover
+  {
+  background-color:grey;
+  color:#fff
+  }
+    
+    
+    .marquee {
+    margin: 20px auto;
+    }
+
+    #buttons {
+    margin: 10px 0;
+    position: relative;
+    top: -50px;
+    }
+
+    #copy {
+    margin-top: 20px;
+    }
+
+    #copy > div {
+    display: none;
+    margin: 0 70px;
+    }
+    </style>
+    <style>
+a.c1 {font-weight: normal;}
+    </style>
+  </head>
+  
+
+  <body class="" id="grid">
+    <div class="browser-landing" id="main">
+      <div class="compact marquee-stacked" id="marquee">
+        <div class="marquee-copy">
+            <a class="c1" href="http://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html"></a>
+        </div>
+      </div>
+      <div class="compact marquee">
+        <div id="info">
+          <p id="info_start">
+            Students: Click on the microphone icon below and begin speaking when RED.
+          </p>
+          <p id="info_speak_now" style="display:none">
+            Speak now. Click microphone to stop or start over. 
+          </p>
+          <p id="info_no_speech" style="display:none">
+            No speech was detected. You may need to adjust your <a href=
+            "//support.google.com/chrome/bin/answer.py?hl=en&amp;answer=1407892">microphone
+            settings</a>.
+          </p>
+          <p id="info_no_microphone" style="display:none">
+            No microphone was found. Ensure that a microphone is installed and that
+            <a href="//support.google.com/chrome/bin/answer.py?hl=en&amp;answer=1407892">
+            microphone settings</a> are configured correctly.
+          </p>
+          <p id="info_allow" style="display:none">
+            Click the "Allow" button above to enable your microphone.
+          </p>
+          <p id="info_denied" style="display:none">
+            Permission to use microphone was denied.
+          </p>
+          <p id="info_blocked" style="display:none">
+            Permission to use microphone is blocked. To change, go to
+            chrome://settings/content/microphone
+          </p>
+          <p id="info_upgrade" style="display:none">
+            Sorry: Speech recognition is not supported by this browser. Google Chrome for MacOS, Linux, or Windows is recommended for using iSpraak. 
+          </p>
+        </div>
+        <div id="div_start">
+          <button id="start_button" onclick="startButton(event)"><img alt="Start" width="50" style="margin: 10px" id="start_img"
+          src="images/mic.gif"></button>
+        </div>
+        <div id="results">
+          <span class="final" id="final_span"></span> <span class="interim" id=
+          "interim_span"></span>
+        </div>
+       
+        <div id="copy">
+        
+     
+          <button class="button" id="copy_button" onclick="copyButton()">Copy Text</button>
+          <div id="copy_info">
+            <p>
+              Press Control-C to copy text.
+            </p>
+            <p>
+              (Command-C on Mac.)
+            </p>
+          </div>
+          
+                 
+          <button class="button" id="submit_button" onclick="submitButton()">Submit Assignment</button>
+          <div id="activity_info">
+         
+              Processing...
+            </p>
+            <p>
+              Please wait or refresh if not redirected.
+          
+          </div>
+        </div>
+        <div class="compact marquee" id="div_language">
+          <select id="select_language" onchange="updateCountry()">
+            </select>&nbsp;&nbsp; <select id="select_dialect">
+            </select>
+        </div>
+      </div>
+    </div>
+    
+<script>
+
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+
+    </script> 
+
+ <script>
+    
+//create a function to grab the language cookie
+//this lets us set a cookie with review.php and read it in javascript
+    
+function getCookie(cname) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+//now lets store the cookie language into a new variable
+
+  let cookie_language = getCookie("cookie_language");
+ 
+//since drop down dialects are alphabetical, set new variable for better defaults  
+//dont want Australian English to be the default option, for example
+  
+  var ispraak_preferred_dialect = 0; 
+
+//switch to set language array based on actual language cookie
+
+switch (cookie_language) {
+  
+  case "am":
+  var langs = [['Amharic (Ethiopia)',['am-ET']]];
+  break;
+  
+  case "ar":
+  var langs = [['Arabic', ['ar-DZ', 'Algeria'], ['ar-BH', 'Bahrain'], ['ar-EG', 'Egypt'], ['ar-IQ', 'Iraq'], ['ar-JO', 'Jordan'], ['ar-KW', 'Kuwait'],['ar-MA', 'Morocco'],['ar-LB', 'Lebanon'],['ar-OM', 'Oman'],['ar-SA', 'Saudi Arabia'],['ar-TN', 'Tunisia'], ['ar-AE', 'United Arab Emirates'],['ar-QA', 'Qatar'],]];
+  ispraak_preferred_dialect = 7;
+  break; 
+  
+  case "bn":
+  var langs = [['Bengali', ['bn-BD', 'Bangladesh'], ['bn-IN', 'India']]];
+  break;
+  
+  case "ca":
+  var langs = [['Català', ['ca-ES']]];
+  break;
+  
+  case "cs":
+  var langs = [['Čeština', ['cs-CZ']]];
+  break;
+
+  case "da":
+  var langs = [['Danish',['da-DK']]];
+  break;
+  
+  case "de":
+  var langs = [['Deutsch',['de-DE']]];
+  break;
+  
+  case "el":
+  var langs = [['Greek', ['el-GR', 'Greece']]];
+  break; 
+    
+  case "en":
+  var langs = [['English',['en-AU', 'Australia'], ['en-CA', 'Canada'], ['en-IN', 'India'], ['en-NZ', 'New Zealand'], ['en-ZA', 'South Africa'], ['en-GB', 'United Kingdom'], ['en-US', 'United States']]];
+  ispraak_preferred_dialect = 6;
+  break;
+
+  case "es": 
+  var langs = [['Español',['es-AR', 'Argentina'],['es-BO', 'Bolivia'],['es-CL', 'Chile'],['es-CO', 'Colombia'],['es-CR', 'Costa Rica'],['es-EC', 'Ecuador'],['es-SV', 'El Salvador'],['es-ES', 'España'],['es-US', 'Estados Unidos'],['es-GT', 'Guatemala'],['es-HN', 'Honduras'],['es-MX', 'México'],['es-NI', 'Nicaragua'],['es-PA', 'Panamá'],['es-PY', 'Paraguay'],['es-PE', 'Perú'],['es-PR', 'Puerto Rico'],['es-DO', 'República Dominicana'],['es-UY', 'Uruguay'],['es-VE', 'Venezuela']]];
+  ispraak_preferred_dialect = 11;
+  break;
+  
+  case "fa":  
+  var langs = [['Persian', ['fa-IR']]];
+  break; 
+
+  case "fi":  
+  var langs = [['Finnish', ['fi-FI']]];
+  break; 
+
+  case "fr":
+  var langs = [['Français',['fr-FR']]];
+  break;
+
+  case "he":
+  var langs = [['Hebrew',['he-HE']]];
+  break; 
+  
+  case "hi":
+  var langs = [['Hindi हिंदी',['hi-IN']]];
+  break; 
+    
+  case "hr":    
+  var langs = [['Hrvatski', ['hr-HR']]];
+  break; 
+  
+  case "hu":    
+  var langs = [['Hungarian', ['hu-HU']]];
+  break; 
+  
+  case "id":
+  var langs = [['Indonesian', ['id-ID', 'Indonesia']]];
+  break;
+  
+  case "it":
+  var langs = [['Italiano', ['it-IT', 'Italia'], ['it-CH', 'Svizzera']]];
+  break;
+  
+  case "ja":
+  var langs = [['日本語', ['ja-JP']]];
+  break;
+  
+  case "ko":
+  var langs = [['한국어', ['ko-KR']]];
+  break;
+
+  case "no":
+  var langs = [['Norwegian', ['nb-NO']]];
+  break;  
+
+  case "nl":
+  var langs = [['Nederlands', ['nl-NL']]];
+  break;  
+    
+  case "pl": 
+  var langs = [['Polski', ['pl-PL']]];
+  break;    
+
+  case "pt": 
+  var langs = [['Português', ['pt-BR', 'Brasil'], ['pt-PT', 'Portugal']]];  
+  break;    
+
+  case "ro": 
+  var langs = [['Romanian', ['ro-RO']]];
+  break;  
+  
+  case "ru": 
+  var langs = [['Pусский', ['ru-RU']]];
+  break;    
+  
+  case "sw": 
+  var langs = [['Swahili', ['sw-KE', 'Kenya'],['sw-TZ', 'Tanzania']]];
+  break;    
+   
+  case "sv": 
+  var langs = [['Svenska', ['sv-SE']]];
+  break;    
+  
+  case "tr": 
+  var langs = [['Turkish', ['tr-TR']]];
+  break; 
+  
+  case "uk": 
+  var langs = [['Ukrainian', ['uk-UA']]];
+  break;  
+  
+  case "ur": 
+  var langs = [['Urdu', ['ur-IN', 'India'],['ur-PK', 'Pakistan']]];
+  break;   
+    
+  case "vi": 
+  var langs = [['Vietnamese', ['vi-VN']]];
+  break;    
+     
+  case "zh":
+  var langs = [['中文', ['cmn-Hans-CN', '普通话 (中国大陆)'], ['cmn-Hans-HK', '普通话 (香港)'], ['cmn-Hant-TW', '中文 (台灣)'], ['yue-Hant-HK', '粵語 (香港)']]];
+  break;
+
+  case "zu": 
+  var langs = [['IsiZulu (Ningizimu Afrika)',['zu-ZA']]];
+  break; 
+
+  case "th":
+  var langs = [['Thai',['th-TH', 'Thailand']]];
+  break;
+
+}
+
+
+let asr_cookie_override = getCookie("asr_override");
+ispraak_preferred_dialect = OrderLanguages(asr_cookie_override, ispraak_preferred_dialect); 
+
+
+for (var i = 0; i < langs.length; i++) {
+  select_language.options[i] = new Option(langs[i][0], i);
+}
+select_language.selectedIndex = 0;
+updateCountry();
+select_dialect.selectedIndex = ispraak_preferred_dialect;
+showInfo('info_start');
+
+function updateCountry() {
+  for (var i = select_dialect.options.length - 1; i >= 0; i--) {
+    select_dialect.remove(i);
+  }
+  var list = langs[select_language.selectedIndex];
+  for (var i = 1; i < list.length; i++) {
+    select_dialect.options.add(new Option(list[i][1], list[i][0]));
+  }
+  select_dialect.style.visibility = list[1].length == 1 ? 'hidden' : 'visible';
+}
+
+var create_transcript = false;
+var final_transcript = '';
+var recognizing = false;
+var ignore_onend;
+var start_timestamp;
+if (!('webkitSpeechRecognition' in window)) {
+  upgrade();
+} else {
+  start_button.style.display = 'inline-block';
+  var recognition = new webkitSpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = function() {
+    recognizing = true;
+    showInfo('info_speak_now');
+    start_img.src = 'images/mic-animate.gif';
+  };
+
+  recognition.onerror = function(event) {
+    if (event.error == 'no-speech') {
+      start_img.src = 'images/mic.gif';
+      showInfo('info_no_speech');
+      ignore_onend = true;
+    }
+    if (event.error == 'audio-capture') {
+      start_img.src = 'images/mic.gif';
+      showInfo('info_no_microphone');
+      ignore_onend = true;
+    }
+    if (event.error == 'not-allowed') {
+      if (event.timeStamp - start_timestamp < 100) {
+        showInfo('info_blocked');
+      } else {
+        showInfo('info_denied');
+      }
+      ignore_onend = true;
+    }
+  };
+
+  recognition.onend = function() {
+    recognizing = false;
+    if (ignore_onend) {
+      return;
+    }
+    start_img.src = 'images/mic.gif';
+    if (!final_transcript) {
+      showInfo('info_start');
+      return;
+    }
+    showInfo('');
+    if (window.getSelection) {
+      window.getSelection().removeAllRanges();
+      var range = document.createRange();
+      range.selectNode(document.getElementById('final_span'));
+      window.getSelection().addRange(range);
+    }
+    if (create_transcript) {
+      create_transcript = false;
+      submitAssignment();
+    }
+  };
+
+  recognition.onresult = function(event) {
+    var interim_transcript = '';
+    if (typeof(event.results) == 'undefined') {
+      recognition.onend = null;
+      recognition.stop();
+      upgrade();
+      return;
+    }
+    for (var i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        final_transcript += event.results[i][0].transcript;
+      } else {
+        interim_transcript += event.results[i][0].transcript;
+      }
+    }
+    final_transcript = capitalize(final_transcript);
+    final_span.innerHTML = linebreak(final_transcript);
+    interim_span.innerHTML = linebreak(interim_transcript);
+    if (final_transcript || interim_transcript) {
+      showButtons('inline-block');
+    }
+  };
+}
+
+function upgrade() {
+  start_button.style.visibility = 'hidden';
+  showInfo('info_upgrade');
+}
+
+var two_line = /\n\n/g;
+var one_line = /\n/g;
+function linebreak(s) {
+  return s.replace(two_line, '<p></p>').replace(one_line, '<br>');
+}
+
+var first_char = /\S/;
+function capitalize(s) {
+  return s.replace(first_char, function(m) { return m.toUpperCase(); });
+}
+
+function submitAssignment() {
+  
+  var ispraak_transcript = encodeURI(final_transcript.substring(0, 5000));
+  window.location.href = 'check_for_errors.php?transcript=' + ispraak_transcript;
+}
+
+function copyButton() {
+  if (recognizing) {
+    recognizing = false;
+    recognition.stop();
+  }
+  copy_button.style.display = 'none';
+  copy_info.style.display = 'inline-block';
+  showInfo('');
+}
+
+function submitButton() {
+  if (recognizing) {
+    create_transcript = true;
+    recognizing = false;
+    recognition.stop();
+  } else {
+    submitAssignment();
+  }
+  submit_button.style.display = 'none';
+  activity_info.style.display = 'inline-block';
+  showInfo('');
+}
+
+function startButton(event) {
+  if (recognizing) {
+    recognition.stop();
+    return;
+  }
+  final_transcript = '';
+  recognition.lang = select_dialect.value;
+  recognition.start();
+  ignore_onend = false;
+  final_span.innerHTML = '';
+  interim_span.innerHTML = '';
+  start_img.src = 'images/mic-slash.gif';
+  showInfo('info_allow');
+  showButtons('none');
+  start_timestamp = event.timeStamp;
+}
+
+function showInfo(s) {
+  if (s) {
+    for (var child = info.firstChild; child; child = child.nextSibling) {
+      if (child.style) {
+        child.style.display = child.id == s ? 'inline' : 'none';
+      }
+    }
+    info.style.visibility = 'visible';
+  } else {
+    info.style.visibility = 'hidden';
+  }
+}
+
+var current_style;
+function showButtons(style) {
+  if (style == current_style) {
+    return;
+  }
+  current_style = style;
+  copy_button.style.display = 'none';
+  submit_button.style.display = style;
+  copy_info.style.display = 'none';
+  activity_info.style.display = 'none';
+}
+
+    </script>
+  </body>
+</html>
+
+

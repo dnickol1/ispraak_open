@@ -1,0 +1,149 @@
+<!-- 
+
+This is the landing page of the website and allows the instructor to make an activity 
+for the students in the language of instruction that they want. It allows the instructor 
+to create an activity in 3 different forms - using automated TTS voices, Uploading an Mp3 audio file, 
+and recording a new prompt. A collapsable menu is also on this page to navigate between pages.
+
+The user form from this page passes instructor variables to makeit.php 
+
+-->
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>iSpraak</title>
+<link rel="stylesheet" type="text/css" href="css/ispraak.css?v=14" media="all">
+<script type="text/javascript" src="javascript/ispraak.js"></script>
+</head>
+
+<body id="main_body" >
+
+<div id="mySidebar" class="sidebar">
+<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+<a href="about.html">About</a>
+<a href="login.php">Connect</a>
+<a href="explore.php">Explore</a>
+<a href="help.html">Help</a>
+</div>
+	
+<div id="mainz">
+<button class="openbtn" onclick="openNav()">☰</button>  
+</div>
+		
+<img id="top" src="images/top.png" alt="">
+
+	
+<div id="form_container">
+	
+	
+<div id="headerBar"></div>
+		<form id="iSpraak" class="ispraak_form"  method="post" action="makeit.php">
+		<div class="form_description">
+		<img style="float: left; padding: 0px 20px 0px 0px" src="images/logo5.png" height="35" alt="iSpraak-Logo" align="left"> 
+	
+			iSpraak for Google Chrome is an online activity generator that automates speech evaluation for second language learners. 
+			
+			Create an activity below, or manage existing activities via the ☰ menu button. </p>
+			
+			</div>						
+			<ul >
+			
+		<li id="li_1" >
+		<label class="description" for="element_1">E-mail Address</label>
+		<div>
+			<input id="element_1" name="element_1" class="element text medium" type="text" maxlength="255" value=""/> 
+		</div><p class="guidelines" id="guide_1">Click the menu ☰ button to login or explore existing activity sets.</p> 
+		</li>		
+		
+		<input class="winniethepooh" autocomplete="off" type="text" id="user_zip_kode" name="user_zip_kode" placeholder="School_Name">
+    
+		<li id="li_3" >
+		<label class="description" for="element_3">Language of Instruction </label>
+		<div>
+		<select class="element select medium" id="element_3" name="element_3" onchange="tdirect()"> 
+<option value="am" >Amharic</option>
+<option value="ar" >Arabic</option>
+<option value="bn" >Bengali</option>
+<option value="ca" >Catalan</option>
+<option value="zh" >Chinese</option>
+<option value="hr" >Croatian</option>
+<option value="cs" >Czech</option>
+<option value="da" >Danish</option>
+<option value="nl" >Dutch</option>
+<option value="en" selected="selected">English</option>
+<option value="fi" >Finnish</option>
+<option value="fr" >French</option>
+<option value="de" >German</option>
+<option value="el" >Greek</option>
+<option value="he" >Hebrew</option>
+<option value="hi" >Hindi</option>
+<option value="hu" >Hungarian</option>
+<option value="id" >Indonesian</option>
+<option value="it" >Italian</option>
+<option value="ja" >Japanese</option>
+<option value="ko" >Korean</option>
+<option value="no" >Norwegian</option>
+<option value="fa" >Persian</option>
+<option value="pl" >Polish</option>
+<option value="pt" >Portuguese</option>
+<option value="ro" >Romanian</option>
+<option value="ru" >Russian</option>
+<option value="es" >Spanish</option>
+<option value="sw" >Swahili</option>
+<option value="sv" >Swedish</option>
+<option value="th" >Thai</option>
+<option value="tr" >Turkish</option>
+<option value="uk" >Ukrainian</option>
+<option value="ur" >Urdu</option>
+<option value="vi" >Vietnamese</option>
+<option value="zu" >Zulu</option>
+
+		</select><p class="guidelines" id="guide_3">Select your language of instruction. iSpraak now supports 36 languages!</p>
+		</div> 
+		</li>		<li id="li_4" >
+		<label class="description" for="element_4">How do you want to provide the model pronunciation?</label>
+		<span>
+			<input id="element_4_1" name="element_4" class="element radio" type="radio" value="1" checked="checked" />
+<label class="choice" for="element_4_1">Use automated TTS voices</label>
+<input id="element_4_2" name="element_4" class="element radio" type="radio" value="2" />
+<label class="choice" for="element_4_2">Upload my own MP3 file</label>
+<input id="element_4_3" name="element_4" class="element radio" type="radio" value="3">
+<label class="choice" for="element_4_3">Record a new prompt now</label>
+
+		</span><p class="guidelines" id="guide_4">Leave this as the default to have iSpraak generate a new text-to-speech (TTS) audio file for you.</p> 
+		</li>		<li id="li_2" >
+		<label class="description" for="element_2">Enter the text you would like your students to read.  </label>
+		<div>
+			<textarea id="element_2" name="element_2" class="element textarea medium" maxlength="370"></textarea> 
+			<p class="guidelines" id="guide_4">Very short contextualized texts work best for speech recognition and speech synthesis. <br><br> (370 character limit)</p> 
+		</div> 
+		</li>
+			</ul>
+			
+				<center><input id="saveForm" class="button4" type="submit" name="submit" value="Make Activity" /></center>
+
+			
+		</form>	
+		
+		
+			<div class="alert" id="alert" style="display:none">
+  <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+  <strong>Warning: Google Chrome is required for students to submit speech activities! <br><br>You can still create activities in this browser, but Chrome is required to complete assignments.</strong>
+</div>
+		
+		<div id="footer">
+			© D. Nickolai. Source Code available on GitHub under the MIT License <br>
+			Funded in part by the National Endowment for the Humanities
+			
+		</div>
+</div>
+
+
+<br><br>
+
+
+
+
+</body>
+</html>
