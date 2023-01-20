@@ -19,3 +19,4 @@ jpGraph - https://jpgraph.net
 
 Questions about the project, including support requests for installing your own instance can be directed to: help@ispraak.net
 
+ 
