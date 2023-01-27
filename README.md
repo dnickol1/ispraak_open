@@ -7,7 +7,7 @@ To install a new instance of iSpraak, you will need to obtain the following in a
 
 Google Developer API Credentials for TTS functionality
 
-Microsoft Azure API Credentials for Transcriptions
+Microsoft Azure API Credentials for transliterations/romanization 
 
 Google Developer API Credentials for SSO
 
