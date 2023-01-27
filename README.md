@@ -16,6 +16,7 @@ Microsoft Azure API Credentials for SSO
 microsoft-api-php by AdnanHussainTurki
 
 phpMMailer - https://github.com/PHPMailer/PHPMailer 
+Text_LanguageDetect - https://github.com/pear/Text_LanguageDetect 
 
 jpGraph - https://jpgraph.net
 
