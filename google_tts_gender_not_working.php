@@ -49,9 +49,6 @@ $btext=$_GET['btext'];
 $voice_gender=$_GET['vg']; //Current options only MALE and FEMALE
 $voice_speed=$_GET['vs']; // Current options fast or slow
 
-//The btext variable has been URL encoded, must decode now
-$btext = urldecode($btext);
-
 //Remove the double asterix wildcard text so it is not spoken in TTS
 $double_asterix = array("**","••");
 $btext = str_replace($double_asterix, "", $btext);
@@ -86,11 +83,10 @@ if ($mylang == "fr") { $language = "fr-FR"; }
 if ($mylang == "de") { $language = "de-DE"; }
 //no Male Voice for Greek 
 if ($mylang == "el") { $language = "el-GR"; $voice_gender = "FEMALE";}
-//new Hebrew Support in 2023
-if ($mylang == "he") { $language = "he-IL"; }
+//no Hebrew Support (he)
 if ($mylang == "hi") { $language = "hi-IN"; }
 //no Male Voice for Hungarian
-if ($mylang == "hu") { $language = "hu-HU"; $voice_gender = "FEMALE";}
+if ($mylang == "hu") { $language = "el-GR"; $voice_gender = "FEMALE";}
 if ($mylang == "id") { $language = "id-ID"; }
 if ($mylang == "it") { $language = "it-IT"; }
 if ($mylang == "ja") { $language = "ja-JP"; }
@@ -155,46 +151,47 @@ $client = new TextToSpeechClient($config);
 $synthesisInputText = (new SynthesisInput())
     ->setText($btext);
 
-//Build File Name based on Google's Voice Name Convention
-//This is necessary because Google's API is now ignoring gender preferences via setSsml
+// build the voice request, select the language code ("en-US") and the ssml
+// voice gender
 
-//choices are Standard, Studio (US), News (US), Wavenet, or Neural (limited voices)
-$google_tts_engine_selection = "Standard";
-$google_voice_name = "undefined"; 
+//Assume ssmlGender is FEMALE unless indicated MALE
+
+//speakingRate
+
+//April 2023, try to build the voice name
+//$voice_name = $language . '-Standard-A' 
+//Standard A - seems to be female
+
+
+
 
 if ($voice_gender == "MALE")
 {
-	$google_voice_name = $language . '-' . $google_tts_engine_selection . '-B';
-		
-		//some voices for males have C or D lettering
-		
-		if ($mylang == "da") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
-		if ($mylang == "it") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
-		if ($mylang == "ja") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
-		if ($mylang == "ko") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
-		if ($mylang == "sv") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-D';  }
-	
-		//en-US exception since A and B voices are both male only for this region
-		//here we assign a female voice in the male condition as a single exception
-		if ($language == "en-US") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
-	
-	
+
+$voice = (new VoiceSelectionParams())
+    ->setLanguageCode($language)
+    ->setSsmlGender(SsmlVoiceGender::MALE);
+    
+    //create cookie for gender selection
+	setcookie("rand_gender_male_only", $voice_gender, time()+7200, '/'); 
+
+
+    
 }
 else
 {
-
-	//all languages have female -A attribute 
-	
-	$google_voice_name = $language . '-' . $google_tts_engine_selection . '-A';
+$voice = (new VoiceSelectionParams())
+    ->setLanguageCode($language)
+    ->setSsmlGender(SsmlVoiceGender::FEMALE);
+    
+    //create cookie for gender selection
+    setcookie("rand_gender_female_only", $voice_gender, time()+7200, '/'); 
+    
+    
 }
 
-
-$voice = (new VoiceSelectionParams())
-    ->setName($google_voice_name)
-    ->setLanguageCode($language);
-    
-//create cookie for voice selection debugging
-setcookie("voice-name-for-tts", $google_voice_name, time()+7200, '/'); 
+//voice was this :     ->setLanguageCode('en-US')
+//voice was this: --- ::FEMALE
 
 // Effects profile
 $effectsProfileId = "telephony-class-application";

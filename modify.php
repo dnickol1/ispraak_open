@@ -80,6 +80,8 @@ if ($permission == "good")
 		//define the query
 		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey = '$mykey' AND mykey2 = '$mykey2'");
 		$text=mysqli_result($myresult,0,"blocktext");
+		$language=mysqli_result($myresult,0,"language");
+			
 		
 		//remind user that a TTS file was generated with the previous text
 		$file_exists_warning = "<li><p class = \"guidelines_on2\">Changes made here will not affect existing student scores or aggregate activity stats.</p></li>"; 
@@ -118,6 +120,21 @@ if ($permission == "good")
 		
 		
 		";
+		
+		
+		//adjust display for RTL languages
+		 
+		if($language=='ar' || $language=='fa' || $language=='he' || $language=='ur')
+		{
+			echo"<script>document.getElementById(\"edit_text\").style.textAlign = \"right\"</script>";
+
+		}
+		else
+		{
+			echo"<script>document.getElementById(\"edit_text\").style.textAlign = \"left\"</script>";
+		}
+
+		
 		
 		
 		//end bracket for editing instructor name from activity
@@ -166,6 +183,7 @@ if ($permission == "good")
 			$key2=mysqli_result($myresult,$i,"mykey2");
 			$key3=mysqli_result($myresult,$i,"blocktext");
 			$key4=mb_strcut($key3, 0, 55, "UTF-8");
+			//$key4=substr($key3, 0, 50);
 			$key5 = $key4 . ""; 
 			$key6=date('m/d/y', $key1);
 			$key7="<a href=\"modify.php?action=edit&email=$auth_email&token=$ispraak_token&mykey=$key1&mykey2=$key2\" class=\"cutelink3\">EDIT</a>";
@@ -208,4 +226,3 @@ echo"
 
 
 ?>
-

@@ -89,6 +89,7 @@ if ($permission == "good")
 			$key2=mysqli_result($myresult,$i,"mykey2");
 			$key3=mysqli_result($myresult,$i,"blocktext");
 			$key4=mb_strcut($key3, 0, 55, "UTF-8");
+			//$key4=substr($key3, 0, 50);
 			$key5 = $key4 . ""; 
 			$key6=date('m/d/y', $key1);
 			$key7="<a href=\"delete.php?action=delete&email=$auth_email&token=$ispraak_token&mykey=$key1&mykey2=$key2\" class=\"cutelink3\">DELETE</a>";
@@ -131,4 +132,3 @@ echo"
 
 
 ?>
-

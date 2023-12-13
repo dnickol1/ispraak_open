@@ -13,8 +13,8 @@ The user form from this page passes instructor variables to makeit.php
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>iSpraak</title>
-<link rel="stylesheet" type="text/css" href="css/ispraak.css?v=14" media="all">
-<script type="text/javascript" src="javascript/ispraak.js"></script>
+<link rel="stylesheet" type="text/css" href="css/ispraak.css?v=101" media="all">
+<script type="text/javascript" src="javascript/ispraak.js?v=101"></script>
 </head>
 
 <body id="main_body" >
@@ -61,7 +61,7 @@ The user form from this page passes instructor variables to makeit.php
 		<li id="li_3" >
 		<label class="description" for="element_3">Language of Instruction </label>
 		<div>
-		<select class="element select medium" id="element_3" name="element_3" onchange="tdirect()"> 
+		<select class="element select medium" id="element_3" name="element_3" onchange="tdirect_update_language()"> 
 <option value="am" >Amharic</option>
 <option value="ar" >Arabic</option>
 <option value="bn" >Bengali</option>
@@ -116,7 +116,7 @@ The user form from this page passes instructor variables to makeit.php
 		<label class="description" for="element_2">Enter the text you would like your students to read.  </label>
 		<div>
 			<textarea id="element_2" name="element_2" class="element textarea medium" maxlength="370"></textarea> 
-			<p class="guidelines" id="guide_4">Very short contextualized texts work best for speech recognition and speech synthesis. <br><br> (370 character limit)</p> 
+			<p class="guidelines" id="guide_5">Very short contextualized texts work best for speech recognition and speech synthesis. <br><br> (370 character limit)</p> 
 		</div> 
 		</li>
 			</ul>
@@ -142,7 +142,12 @@ The user form from this page passes instructor variables to makeit.php
 
 <br><br>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<script> 
+document.getElementById("element_3").addEventListener("change", updateLanguage); 
+document.getElementById("element_2").addEventListener("keydown", updateLanguage); 
+</script>
 
 
 </body>

@@ -20,7 +20,7 @@ include_once("../../config_ispraak.php");
 //Get function from query string for this page
 //Not every call to this page will need all these variables
 $email=$_GET['email'];
-$filter=$_GET['filter'] ?? 63000000; //measured in seconds, defaults to two years 
+$filter=$_GET['filter'] ?? 604800; //measured in seconds, defaults to one week, 63000000 is two years
 $mykey=$_GET['mykey'];
 $mykey2=$_GET['mykey2'];
 $blocktext=$_GET['blocktext'];
@@ -80,7 +80,8 @@ echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset
 <br><br><br><center>You have successfully authenticated ($email) <br>
 <br></div>";
 
-echo "<center>Active students since $filter_time2:  <a href=\"roster.php?email=$email&token=$ispraak_token&filter=172800\" class=\"cutelink3\">48 hours</a> |  <a href=\"roster.php?email=$email&token=$ispraak_token&filter=604800\" class=\"cutelink3\">One Week</a> | <a href=\"roster.php?email=$email&token=$ispraak_token&filter=2592000\" class=\"cutelink3\">One Month</a> | <a href=\"roster.php?email=$email&token=$ispraak_token&filter=16000000\" class=\"cutelink3\">6 Months</a>
+//echo "<center>Filter: None, 7 days, 30 days, 60 days, 120 days</center><p>"; 
+echo "<center>Active students since $filter_time2:  <a href=\"roster.php?email=$email&token=$ispraak_token&filter=172800\" class=\"cutelink3\">48 hours</a> |  <a href=\"roster.php?email=$email&token=$ispraak_token&filter=604800\" class=\"cutelink3\">One Week</a> | <a href=\"roster.php?email=$email&token=$ispraak_token&filter=2592000\" class=\"cutelink3\">One Month</a> | <a href=\"roster.php?email=$email&token=$ispraak_token&filter=16000000\" class=\"cutelink3\">6 Months</a> | <a href=\"roster.php?email=$email&token=$ispraak_token&filter=63000000\" class=\"cutelink3\">All</a>
 </center><p>";
 echo"<hr class=\"alt\"><br><a href=\"roster_export.php?email=$email&token=$ispraak_token&filter=$filter\"target=\"_blank\" ><img src=\"images/csv.png\" align=\"right\" width=\"35\"></a>";
 
@@ -98,6 +99,7 @@ $smissed=mysqli_result($myresult,$i,"missed_words");
 $smisc=mysqli_result($myresult,$i,"misc");
 $ukey=mysqli_result($myresult,$i,"uniquekey");
 
+//echo"$readable_date";
 
 
 echo"$sname (<a href=\"student_stats.php?email=$semail&id=$sname\" class=\"cutelink3\" target=\"_blank\">$semail</a>)";
@@ -136,12 +138,14 @@ while($j < $num2){
 
 	$array_blocktext = mysqli_fetch_array($query2b);
 	$blocktext=mysqli_result($query2b,0,"blocktext",);
+	//$newtext = substr($blocktext,0,40); 
 	$newtext=mb_strcut($blocktext, 0, 40, "UTF-8");
 	$date_created=mysqli_result($query2b,0,"mykey");
 	$readable_date2 = date('m/d/y', $date_created);
 	
 	if ($cached_activity_id == $activity)
 	{
+		//$newtext = substr($blocktext,0,35); 
 		$newtext=mb_strcut($blocktext, 0, 35, "UTF-8");
 
 		$newtext = '<i><span style="background-color:#e6f7ff"> → '. $newtext . '</span></i>'; 
@@ -234,6 +238,13 @@ echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset
 		</body>
 	</html>";
 
+
+
+
+
 }
+
+
+
 
 ?>

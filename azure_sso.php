@@ -18,4 +18,3 @@ $microsoft = new Auth($tenant, $client_id, $client_secret,$callback, $scopes);
 header("location: " . $microsoft->getAuthUrl());
 
 ?>
-

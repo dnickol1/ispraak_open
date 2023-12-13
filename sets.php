@@ -59,6 +59,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -97,6 +99,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -133,7 +137,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
-
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -315,6 +320,7 @@ $j = $i+1;
 $key1=mysqli_result($myresult,$i,"mykey");
 $key2=mysqli_result($myresult,$i,"mykey2");
 $key3=mysqli_result($myresult,$i,"blocktext");
+//$key4=substr($key3, 0, 42);
 $key4=mb_strcut($key3, 0, 42, "UTF-8");
 
 $key5 = $key4 . ""; 
@@ -506,6 +512,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -522,6 +530,8 @@ $mykey2 = "empty";
 
 if($set_name != strip_tags($set_name))
 {
+  // this contains HTML  
+  	//echo "Error inserting record. HTML detected in set name. Press back and try again."; 
 
 }
 else
@@ -589,6 +599,7 @@ else
 //Confirmation that record was inserted, now display all instructor sets?
 
 	$newURL = "sets.php?action=view&email=$email&token=$ispraak_token";
+	//echo "success inserting record - $set_name for email is $email"; 
 	header('Location: '.$newURL);
 
 }
@@ -600,6 +611,16 @@ mysqli_close($msi_connect);
 
 //above this bracket is the insert function
 }
+
+
+
+
+
+
+
+
+
+
 
 //above this bracket user is authenticated
 }
@@ -632,4 +653,3 @@ echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset
 
 
 ?>
-

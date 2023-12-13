@@ -34,7 +34,8 @@ if (mysqli_connect_errno())
   	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
-//Example: https://www.ispraak.net/stats.php?mykey=1662152565&instructor_email=dnickol1@slu.edu&mykey2=Jb12984f0ba8d4740ef280bad88f73e7
+//Example: https://www.ispraak.net/stats.php?mykey=1651199103&instructor_email=dnickol1@slu.edu (reference)
+//Updated example: https://www.ispraak.net/stats.php?mykey=1662152565&instructor_email=dnickol1@slu.edu&mykey2=Jb12984f0ba8d4740ef280bad88f73e7
 
 //Get mykey from query string & declare session variable
 //If no variable found in query string, just initialize as Not Available
@@ -44,7 +45,8 @@ $email = $_GET['instructor_email'] ?? 'NA';
 
 $readable_date=date('m/d/y', $mykey);
 
-
+$temail_hide = hide_email($email);
+ 
 //Get all student grades from the specified activity and group by their email
 $myresult = mysqli_query($msi_connect, "SELECT DISTINCT * FROM ispraak_grades WHERE activity_id = '$mykey' ORDER BY student_name ASC, activity_id ASC");
 $num=mysqli_num_rows($myresult);
@@ -87,7 +89,7 @@ echo "
                   
                    <img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\">
 
-			<br><br><br>Student improvement stats since $readable_date for $email ($num total records)</b> 
+			<br><br><br>Student improvement stats since $readable_date for $temail_hide ($num total records)</b> 
 			
 			<br></p>
 						
@@ -138,13 +140,19 @@ $smisc=mysqli_result($myresult,$i,"misc");
 $ukey=mysqli_result($myresult,$i,"uniquekey");
 $aid=mysqli_result($myresult,$i,"activity_id");
 
+//Uncomment below to see data for each record
+//echo"<br>Record: $i - $aid - $sname - $semail - $sscore - $stime";
 
 if ($cached_activity_id == $aid && $cached_email == $semail)
 {
+	//Uncomment below to see data for each record
+	//echo " - (duplicate detected) --> putting score into array ";
 	
 	//since this is a duplicate score for the same email address, put the score into an array 
 	array_push($cached_score_array, $sscore);
 	
+	//Uncomment below to see status of array 
+	//print_r($cached_score_array);  
 
 }
 else
@@ -173,6 +181,7 @@ else
 		
 		  ";
 		  
+		//echo "<br>Student #$i | max score: $max | first score is: $first_item | final score: $last_item | attempts: $count_items"; 
 	}
 
 	//reset arrays and caches for next student 
@@ -192,19 +201,21 @@ echo "<hr>";
 $var1 = array_sum($cached_differences);
 $var2 = count($cached_differences);
 
+//echo "<br>Math is $var1 / $var2<br>";
 
 if ($var1 == "0" || $var2 == "0")
 {
-echo "<br>Insufficient data to calculate progress stats on this activity."; 
+echo "<p style=\"color:red\">Insufficient data to calculate progress stats on this activity.</p>"; 
 }
 else
 {
 $average = array_sum($cached_differences)/count($cached_differences);
-echo "<br>Average improvement of $average % across all records for this activity <i>(first vs. highest)</i>.";
+$average = round($average, 2);
+echo "<br>Average improvement of $average% across all records for this activity <i>(first vs. highest)</i>.<br>";
  
 }
 
-echo "<br><br>For this report to be useful, students must complete multiple submissions of this activity.";
+echo "<br>For this report to be useful, students must complete multiple submissions of this activity.";
 
 
 			

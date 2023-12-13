@@ -22,6 +22,7 @@ $scopes_array = ["User.Read"];
 if (isset($_GET['code'])) 
 {
 
+	//$auth = new Auth(Session::get("tenant_id"), Session::get("client_id"), Session::get("client_secret"), Session::get("redirect_uri"), Session::get("scopes"));
 	//Was getting type errors, sometimes, when sending NULL instead of a string... adding the ?? 'NA' which seems to be working now
 	
 	$tenant = "common";
@@ -31,6 +32,7 @@ if (isset($_GET['code']))
 	$scopes = ["User.Read"];
 	$auth = new Auth($tenant, $client_id, $client_secret,$callback, $scopes);
 	
+	//$auth = new Auth(Session::get("tenant_id") ?? 'NA', Session::get("client_id") ?? 'NA', Session::get("client_secret") ?? 'NA', Session::get("redirect_uri") ?? 'NA', Session::get("scopes") ?? 'NA');
 	
 	$tokens = $auth->getToken($_REQUEST['code'], $_REQUEST['state']);
 	$accessToken = $tokens->access_token;
@@ -79,6 +81,7 @@ if (isset($_GET['code']))
   		else
   		{
   			header("Location: $domain_name/login.php?token=$ispraak_token&email=$email");
+  			//echo "Please use the following link to continue: $domain_name/login.php?token=$ispraak_token&email=$email"; 
   		}
   		
   		//end connection error if-else statement
@@ -92,5 +95,3 @@ else
 
 
 ?>
-
-

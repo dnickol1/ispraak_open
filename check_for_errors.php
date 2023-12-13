@@ -115,6 +115,11 @@ $good_text = $block_text;
 $str1 = remove_punctuation_and_lowercase($good_text, $mylang);
 $str2 = remove_punctuation_and_lowercase($result, $mylang);
 
+//We also want to address the different apostrophes ’ vs ' by normalizing them all to ' 
+
+$str1 = apo_swap($str1);
+$str2 = apo_swap($str2);
+
 //Get a percentage calculated on similarity between two strings
 
 similar_text("$str1", "$str2", $sim);
@@ -129,6 +134,7 @@ $wc = '';
 if (strpos($haystack, $needle) !== false) 
 {
 	//there is at least ONE wildcard present
+	//$sim = findWildCardScore($good_text,$result); 
 	$sim = findWildCardScore($str1,$str2);
 
 }
@@ -309,6 +315,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later!";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 
@@ -341,6 +348,18 @@ if ($sim < 100)
    		{
    			echo "[<a href=\"http://www.forvo.com/search-$forvo_code/$thisword\" class=\"cutelink\" target=\"_blank\">$thisword</a>] ";
      
+     		//check for French homophones
+     		if ($mylang == "fr")
+     		{
+     			$check_fr_homophone = confirm_mistake($thisword, $str2); 
+     			if ($check_fr_homophone == true) { 
+     				//echo "<img src=\"images/flag_fr_homophone.png\" width=\"15\">"; 
+     				
+     				echo "<div class=\"tooltip\"><img src=\"images/flag_fr_homophone.png\" class=\"smallicons\" height=\"15px\"  id=\"$thisword\"></a><span class=\"tooltiptext\">You said <i>$thisword</i> correctly! This is a French homophone!</span></div> "; 
+     				
+     				} 
+	 			
+     		}
    			//for each bad word, throw it into the DB under ispraak_stats
    	
    			$activity_id9 = $_SESSION['mykey'];
@@ -365,7 +384,9 @@ $num2020 = $result2020->num_rows;
 $i2 = 0; 
 $top_score=mysqli_result($result2020,$i2,"score");
 
-$praise = "<br><br>Your score has been saved and sent to $iemail<br><br>"; 
+$temail_hide = hide_email($iemail);
+ 
+$praise = "<br><br>Your score has been saved and sent to $temail_hide<br><br>"; 
 
 if ($top_score <= $sim)
 {
@@ -395,6 +416,14 @@ if ($active_set == "true")
 	
 		echo "<script> parent.document.getElementById('goForward').style.display=\"inline\"; </script>";	
 	}
+	
+		else
+	{
+			echo "<script> parent.document.getElementById('main_body').style.background = \"#b3bec4 url('images/end_of_set_background.gif') repeat right top\";</script>";	
+
+	}
+	
+	
 
 }
 
@@ -418,7 +447,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
-
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 //Slashes have already been escaped, but we need to further prepare strings for mySQLi insertion

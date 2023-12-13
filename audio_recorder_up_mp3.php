@@ -59,8 +59,3 @@ $moved = move_uploaded_file($input, $output2);
 }
 
 ?>
-
-
-
-
-

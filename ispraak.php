@@ -67,6 +67,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -206,7 +207,7 @@ echo "$ispraak_header
 			
 			<div class=\"alert\" id=\"alert\" style=\"display:none\">
   <span class=\"closebtn\" onclick=\"this.parentElement.style.display='none';\">&times;</span> 
-  <strong>Warning: Google Chrome is required to use iSpraak!</strong>
+  <strong>Warning: Google Chrome is strongly recommended for iSpraak voice activities! You may experience errors with this browser if you continue.</strong>
 </div>	
 		</form>	
 		$ispraak_footer
@@ -221,6 +222,9 @@ $active_set
 	{
 	document.getElementById(\"alert\").style.display = \"block\";
 	}
+	
+	notChrome();
+	
 </script>	
 	
 	

@@ -34,6 +34,7 @@ else
 	if (mysqli_connect_errno())
 	{
 		echo "Unable to connect to the database. Please try again later.";
+  		//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 	}
 
 	//Going to identify activities with submissions in past 24 hours
@@ -133,7 +134,7 @@ else
 	else
 	{
 		$mailz = $smtp->send($email, $headers, $full_email_body);
-		$mailz = $smtp->send($email_cc, $headers, $full_email_body);
+		//$mailz = $smtp->send($email_cc, $headers, $full_email_body);
 		
 		echo "<br>Emails sent to $email and $email_cc";
 		

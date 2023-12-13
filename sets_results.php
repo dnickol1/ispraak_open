@@ -28,6 +28,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -96,10 +97,10 @@ $i=0;
 while ($i < $num_of_students) 
 {
 
-	
+	//$sname=mysqli_result($myresult,$i,"student_name");
 	$semail=mysqli_result($myresult,$i,"student_email");
 
-	
+	//$my_next_result = mysqli_query($msi_connect, "SELECT DISTINCT activity_id FROM ispraak_grades where student_email='$semail'");
 	$my_next_result = mysqli_query($msi_connect, "SELECT *  FROM ispraak_grades where student_email='$semail' group by activity_id");
 	
 	$num_of_activities=mysqli_num_rows($my_next_result);
@@ -117,13 +118,15 @@ while ($i < $num_of_students)
 		$score=mysqli_result($my_next_result,$j,"score");
 		$mw=mysqli_result($my_next_result,$j,"missed_words");
 		
-
+		//echo "<br>$score and $mw !";
+			
+		
 		if(strpos($all_ids, $said) !== false)
 		{
   			$count_of_activities_in_set_done++;
   			$total_score = ($score + $total_score); 
   			$total_missed_words = ($mw + $total_missed_words);
-  			
+  			//echo "$said, $total_score, $total_missed_words. "; 
 		}
 	
 	$j++; 
@@ -170,5 +173,8 @@ echo "
 mysqli_close($msi_connect);
 
 
-?>
 
+
+
+
+?>

@@ -25,6 +25,10 @@ ini_set("include_path", '/home2/dnickol1/php:' . ini_get("include_path") );
 //Do not use default PHP mail function
 require_once "Mail.php";
 
+//Detect language for English
+require_once "Text/LanguageDetect.php";
+
+
 //Look up IP and USER Agent for Logging and SPAM control
 $visitor_ip = getIP();
 $user_agent = $_SERVER['HTTP_USER_AGENT'];
@@ -35,7 +39,7 @@ $language=$_POST['element_3'];
 $audiofile=$_POST['element_4'];
 $blocktext=$_POST['element_2'];
 $honey_pot=$_POST['user_zip_kode'];
-
+//$btext=$_COOKIE['element_2'];
 
 //make all variables into session variables for use on other pages
 $_SESSION['email'] = $email;
@@ -50,6 +54,18 @@ $logtxt = "\n $email ($language)($audiofile) honey: $honey_pot IP: $visitor_ip a
 fwrite($mylogfile, $logtxt);
 fclose($mylogfile);
 
+//might be an LTI entry to this page...
+//this was to check for an LTI call to this page
+/*
+$lti_running = "no";
+$lti_message = " and e-mailed to you. You can also copy the links below (right click) in case the automated e-mail does not reach you or if you have unsubscribed from the creator e-mails."; 
+$context_id=$_GET['cid'];
+if (strlen($context_id) > 3)
+{
+	$lti_message = " and is now available in your LMS. Press the REFRESH button in your dashboard to see this activity. ";
+	$lti_running = "yes";
+}
+*/
 
 //create an error message variables, by default no error and everything assumed good 
 $error_saving_db = "<p style=\"color:green\">Database connection: ✓</span>";
@@ -63,6 +79,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -72,6 +90,54 @@ $language = mysqli_real_escape_string($msi_connect, $language);
 $audiofile = mysqli_real_escape_string($msi_connect, $audiofile);
 $blocktext = mysqli_real_escape_string($msi_connect, $blocktext);
 }
+
+//Dont need to check for registered accounts, all will be free
+
+//First check to see if this request is coming from a valid account
+//with a valid e-mail address
+/*
+$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_accounts");
+//$num=mysql_numrows($myresult);
+$num = $myresult->num_rows;
+$validity="<br><br><p style=\"color:red\">You are using the free version of iSpraak with an unregistered account ($email). Some features will be disabled, such as premium text-to-speech services. Please consider registering to help financially support this project! </p>";
+$vcode="good";
+$vcode2="unregistered";
+$warnyou="";
+$i=0;
+while ($i < $num) 
+{
+$required_etext=mysqli_result($myresult,$i,"required_etext");
+$institution=mysqli_result($myresult,$i,"institution");
+$expiry=mysqli_result($myresult,$i,"expiry");
+$readable_date = date('m/d/Y', $expiry);
+if (strpos($email,$required_etext) !== false) 
+{
+$validity="<br><br>Registered Account: $institution <br>Licensed until: $readable_date";
+$vcode="good";
+$vcode2="good";
+//If e-mail is valid, should also check on account expiry date
+$timenow = time();
+if ($timenow > $expiry)
+	{
+		$warnyou="<br><br><p style=\"color:red\">Please renew your account or complete your registration for $institution!</p>";
+		$vcode="bad";
+	}
+}
+$i++;
+}
+//Query how many times a demo e-mail address has been used
+if ($vcode2 == "unregistered")
+{
+$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak WHERE email='$email' ORDER BY mykey DESC");
+//$num=mysql_numrows($myresult);
+$num = $myresult->num_rows;
+	if ($num > 100)
+	{
+	$warnyou="<p style=\"color:red\">You have exceeded your trial for iSpraak. Please register!</p>";
+	$vcode="bad";
+	}
+}
+*/
 
 //create an ID pair for this activity
 $mykey = time();
@@ -94,6 +160,23 @@ if ($email == "")
 {
 	$vcode = "bad";
 	$warnyou = "<br><p style=\"color:red\">Double check that e-mail address!</p>";
+}
+
+
+//check if text is actually English 
+if ($language == "en") 
+{
+	//very short texts cannot be reliably parsed to determine language, so check for length
+	$detect_length = strlen($blocktext);
+	if ($detect_length > 30)
+	{
+		$match = detectLanguage($blocktext,$language);
+		if($match == false) 
+		{
+		$vcode = "bad";
+		$warnyou = "<br><p style=\"color:red\">Oops. Language mismatch detected.<br><br> Please check your spelling, language choice, or reformulate your prompt.</p>";
+		}
+	}
 }
 
 //check for empty variables
@@ -205,6 +288,7 @@ if (is_numeric("$honey_pot"))
 if ($vcode == "good")
 {
 
+//add both mykey (time) and mykey2 (random) and an auto increase column
 
 //define the query
 $query = "INSERT INTO ispraak VALUES ('$email', '$language', '$audiofile', '$blocktext','$mykey', '$mykey2','')";
@@ -213,7 +297,7 @@ $query = "INSERT INTO ispraak VALUES ('$email', '$language', '$audiofile', '$blo
 //determine if it was a good insert
 $good_insert = mysqli_query($msi_connect, $query);
 
-//new IF statement to avoid duplicate mykey issue
+//new monster IF statement to avoid duplicate mykey issue
 //or any other INSERT problem
 
 if (!$good_insert)
@@ -263,6 +347,28 @@ else
 //new activity was inserted
 
 
+//if this request came from the LTI, you need to update that database as well
+//for development purposes, putting no for now
+$lti_running = "no";
+
+if ($lti_running === "yes")
+{
+	$role = "instructor"; 
+	$misc999 = "999"; 
+	$query2 = "INSERT INTO ispraak_lti VALUES ('$context_id', '$mykey', '$email', '$role','$misc999','$misc999','$mykey','')";
+	mysqli_query($msi_connect, $query2);
+}
+else
+{
+
+//2018, LTI NOT running, so send an e-mail
+
+//The email delivery is what will allow us to limit unregistered or expired users
+//from finding out their activity code
+//Let's define strings based on the vCodes saved above
+//Can also include the warn-you variable text in the e-mail
+
+
 $helpu = "<br><br>For other help and activity creation guidelines, check out our
  help page <a href=\"$domain_name/help.html\">here.</a> If you don't want to receive these activity creation e-mails, you can <a href=\"$domain_name/unsubscribe.php?id=$email&action=check&type=NCE\">unsubscribe</a>.";
 
@@ -273,6 +379,25 @@ $subject = "iSpraak Activity Created";
 $from = "iSpraak <ispraak.bot@ispraak.com>";
 $student_body = "<table border = 0 width = 500><tr><td><h3>Your iSpraak Links</h3>New activity has been created for $email:<br><br><b>$blocktext_strip</b><br><br>Shareable student link: <a href=\"$domain_name/ispraak.php?mykey=$mykey&mykey2=$mykey2\">HERE</a><br>Private instructor link: <a href=\"$domain_name/grades.php?mykey=$mykey&mykey2=$mykey2\">HERE</a></b><br><br>For technical assistance, please send an e-mail to help@ispraak.com. This message has been sent from an address that is not monitored. $helpu </td></tr>";
 $student_body2 = "<table border = 0 width = 500><tr><td><h3>iSpraak Links for $email</h3><br>New activity #$mykey has been created.<br><br>Student link: <a href=\"$domain_name/ispraak.php?mykey=$mykey&$mykey2\">HERE</a><br>Instructor link: <a href=\"$domain_name/grades.php?mykey=$mykey&dou=courr&mykey2=$mykey2\">HERE</a></b><br><br>For technical assistance, please send an e-mail to help@ispraak.com. This message has been sent from an address that is not monitored. $helpu </td></tr>";
+
+//new variables for august 2018
+//renamed these variables in the config file, be sure to chech them out
+/*
+$hostz = "ssl://mail.ispraak.com";
+$portz = "465";
+$usernamez = "ispraak.bot@ispraak.com";
+$passwordz = "ksfkjMMM345dkkkL";
+$contentz = "text/html; charset=utf-8";
+$mimez = "1.0";
+$reply_addressz = "no_reply@ispraak.com";
+$mail_host = "ssl://mail.ispraak.net";
+$mail_port = "465";
+$mail_username = "ispraak.bot@ispraak.net";
+$mail_password = "ZZZo5mFEEMKwjNcuRnTolKm";
+$mail_content = "text/html; charset=utf-8";
+$mail_mime = "1.0";
+$mail_reply_address = "no_reply@ispraak.net";
+*/
 
 $headers = array ('From' => $from,
   'To' => $email,
@@ -290,10 +415,16 @@ $smtp = Mail::factory('smtp',
     'username' => $mail_username,
     'password' => $mail_password));
 
+//$mailz = $smtp->send($email, $headers, $student_body);
+//old functions that often go straight to junk folder 
+//mail($email, $subject, $student_body, "From: $from\nContent-Type: text/html; charset=iso-8859-1");
+
+//enough people have asked to stop getting these for every assignment, so.... 
 //has this person opted out of e-mail communication, let's find out
     
     $tname2 = mysqli_real_escape_string($msi_connect, $email);
     $myresultw = mysqli_query($msi_connect, "SELECT * FROM ispraak_unsubscribe WHERE email = '$tname2' AND email_pref_code2 = 'NCE'");
+	//$numw=mysql_numrows($myresultw);
 	
 	$numw=mysqli_num_rows($myresultw);
 	
@@ -306,10 +437,18 @@ $smtp = Mail::factory('smtp',
 	else
 	{
 		//below line sends a copy to our generic gmail
+		//mail($to5, $subject, $student_body2, "From: $from\nContent-Type: text/html; charset=iso-8859-1");
 		$mailz = $smtp->send($email, $headers, $student_body);
+		//echo "debuggin - $mailz";
 	
 	}
 
+//good as of august 2020
+//mail($to5, $subject, $student_body2, "From: $from\nContent-Type: text/html; charset=iso-8859-1");
+
+//end non-LTI e-mail generator
+//no sense in emailing a bunch when LTI system is keeping track 
+}
 
 
 //in this condition, the user will rely on TTS pronunciation model 
@@ -335,8 +474,8 @@ echo "
 		<form id=\"ispraak\" class=\"ispraak_form\"  method=\"post\" action=\"makeit.php\">
 					<div class=\"form_description\">
 					
-					
-					<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"> 
+					<a href=\"index.html\">
+					<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"></a> 
 	<br><br><br></div>
 		Your activity has been created and is now ready to be shared. Remember to only share the student link (left) and to keep your instructor link (right) private. You can further manage this activity by logging on to the instructor dashboard.<br>
 								<br><br>
@@ -557,6 +696,10 @@ echo "
 
 
 }
+
+
+
+
 
 //close your connection to the DB
 mysqli_close($msi_connect);

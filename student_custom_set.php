@@ -2,9 +2,9 @@
 
 /*
 
-This page displays all grades for a given activity key pair (mykey and mykey2) and can be 
-sorted by student name or by date completed. Displayed information includes name, email,
-score, date completed, and number of mistakes. 
+This page will build a custom activity set based on a provided email address and name. 
+Based on prior activities, any assignment with a score < 85 will be included into the set.
+If no completed activities have low score, user will be notified everything is already reviewed
 
 */
 
@@ -152,6 +152,8 @@ You can track your progress at the bottom of the screen.
 	}
 
 
+//print_r($array1);
+//print_r($array2);
 
 
 	//header('Location: '.$newURL);

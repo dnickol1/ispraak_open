@@ -129,7 +129,7 @@ echo "The iSpraak default regional settings can be overridden here. Please note 
 if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
-
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -150,7 +150,7 @@ $rowcount=mysqli_num_rows($myresult);
 
 if ($rowcount < 1)
 {
-	 
+	//echo "<center>No language preferences saved for your account. You can set these below.</center>"; 
 }
 else
 {
@@ -160,14 +160,39 @@ else
 	$asr_pref=mysqli_result($myresult,$i,"asr_pref");
 	
 	$default_description = outputLanguage($language);
+	//$default_description = "Preferred: $language"; 
 	$default_tts_description = "Preferred: $tts_pref";
 	$default_asr_description = "Preferred: $asr_pref"; 
 
 
 	
+	//echo "<ul>Your default language is set to: $language</ul>";
+	//echo "<ul>Your TTS preference is set to: $tts_pref</ul>";
+	//echo "<ul>Your ASR preference is set to: $asr_pref</ul>";
 		
 }
 	
+//do email preferences exist for this user? 
+/*
+$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_unsubscribe where email='$email'");
+$rowcount=mysqli_num_rows($myresult);	
+
+if ($rowcount < 1)
+{
+	//echo "<center>No email preferences are saved for your account. You can set these below.</center>"; 
+}
+else
+{
+
+	$i = 0;
+	$email_pref_code=mysqli_result($myresult,$i,"email_pref_code");
+	$email_pref_code2=mysqli_result($myresult,$i,"email_pref_code2");
+
+	echo "<ul>Daily Digest Emails: $email_pref_code</ul>";
+	echo "<ul>Creator Emails: $email_pref_code2</ul>";	
+
+}
+*/
 
 //close your connection to the DB
 mysqli_close($msi_connect);
@@ -302,7 +327,7 @@ echo "
 <option value=\"es-AR\" >Spanish (Argentina)</option>
 <option value=\"es-BO\" >Spanish (Bolivia)</option>
 <option value=\"es-CL\" >Spanish (Chile)</option>
-<option value=\"es-CO\" >Spanish (Columbia)</option>
+<option value=\"es-CO\" >Spanish (Colombia)</option>
 <option value=\"es-CR\" >Spanish (Costa Rica)</option>
 <option value=\"es-DO\" >Spanish (Dominican Republic)</option>
 <option value=\"es-EC\" >Spanish (Ecuador)</option>

@@ -24,7 +24,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
-  	
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 //Get mykey from query string & declare session variable
@@ -136,17 +136,20 @@ $synth_button = "";
 //Assume that it SHOULD be displayed and turn it OFF for languages it won't work
 //iSpeech is deactivated by the followin call - $i_speech = ""; 
 
+//To safely send the btext variable over a query string, we must encode that string
+$encoded_btext = urlencode($c_stripped);
+
 //iSpeech is the TTS vendor on iSpraak.com and Google is the vendor on iSpraak.net
 
 $mylang = $a; 
 $i_speech = ""; 
-$i_speech = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&mykey2=$mykey2&btext=$c_stripped\" align=\"right\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
+$i_speech = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&mykey2=$mykey2&btext=$encoded_btext\" align=\"right\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
 
 //arabic needs to have this iframe aligned left because it is a right-to-left language
 //and otherwise causes display problems
 //this is probably true for the other RTL languages, need to confirm! 
 
-$i_speech_arabic = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&btext=$c_stripped\" align=\"left\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
+$i_speech_arabic = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&btext=$encoded_btext\" align=\"left\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
 
 //Make instructor e-mail into session variable
 
@@ -165,7 +168,37 @@ $mylang = $row["language"];
 $iframe_text = "<br><br>Error: Unable to determine source language!<br><br>";
 
 
-if ($mylang == "am" || $mylang == "hr" || $mylang == "he" || $mylang == "fa" || $mylang == "sw" || $mylang == "ur" || $mylang == "zu")
+/*
+
+testing without the synth or ispeech adjustments sept 2022
+
+if ($mylang == "fr") { $synth = "fr-FR"; }
+if ($mylang == "it") { $synth = "it-IT";}
+if ($mylang == "es") { $synth = "es-MX"; }
+if ($mylang == "de") { $synth = "de-DE"; }
+if ($mylang == "en") { $synth = "en-US"; }
+
+//turn off iSpeech for Vietnamese, Hindi, & Croatian
+
+if ($mylang == "hi") { $synth = "hi-IN"; $i_speech = ""; }
+
+//turn off iSpeech AND browser synth for Amharic, Croatian, Swahili, Vietnamese, Zulu, etc.
+
+if ($mylang == "am") { $i_speech = ""; }
+if ($mylang == "hr") { $i_speech = ""; }
+if ($mylang == "sw") { $i_speech = ""; }
+if ($mylang == "vi") { $i_speech = ""; }
+if ($mylang == "zu") { $i_speech = ""; }
+
+if ($mylang == "ur") { $i_speech = ""; }
+if ($mylang == "uk") { $i_speech = ""; }
+if ($mylang == "bn") { $i_speech = ""; }
+if ($mylang == "id") { $i_speech = ""; }
+if ($mylang == "ro") { $i_speech = ""; }
+
+*/
+
+if ($mylang == "am" || $mylang == "hr" || $mylang == "fa" || $mylang == "sw" || $mylang == "ur" || $mylang == "zu")
 {
 	$i_speech = "";
 }
@@ -207,6 +240,7 @@ $pinyin = "";
 if ($mylang == "he")
 {
 $bt = $_SESSION['block_text']; 
+//$pinyin = transliterator_transliterate('Any-Latin; Hiragana-Latin; Lower();', $bt);
 $api_key = $azure_api_tranliteration_key;
 $pinyin = api_Transliterate($mylang, $bt, $api_key);
 
@@ -217,9 +251,14 @@ $zhtext = "<img alt=\"iSpraak\" src=\"images/latin.png\" align=\"right\" width=\
 
 if ($mylang == "zh") 
 {
-
+//$synth = "zh-CN";
 $bt = $_SESSION['block_text']; 
-
+//$bt = urlencode ($bt); 
+//$json = file_get_contents("https://glosbe.com/transliteration/api?from=Han&dest=Latin&text=$bt&format=json");
+//$obj = json_decode($json);
+//$pinyin = $obj->{'text'}; 
+//$pinyin2 = $obj->{'result'};
+//$pinyin = transliterator_transliterate('Any-Latin; Accents-Any; Lower();', $bt);
 
 $pinyin = transliterator_transliterate('Any-Latin; Any-zh; Lower();', $bt);
 
@@ -232,7 +271,11 @@ $zhtext = "<img alt=\"iSpraak\" src=\"images/pinyin.png\" align=\"right\" width=
 if ($mylang == "ru")
 {
 $bt = $_SESSION['block_text']; 
-
+//$bt = urlencode ($bt); 
+//$json = file_get_contents("https://glosbe.com/transliteration/api?from=Cyrillic&dest=Latin&text=$bt&format=json");
+//$obj = json_decode($json);
+//$pinyin = $obj->{'text'}; 
+//$pinyin2 = $obj->{'result'};
 $pinyin = transliterator_transliterate('Any-Latin; Russian-Latin/BGN; Lower();', $bt);
 
 $zhtext = "<img alt=\"iSpraak\" src=\"images/latin.png\" align=\"right\" width=\"30\" id=\"998\" onclick=\"myFunction5()\">"; 
@@ -262,6 +305,7 @@ $zhtext = "<img alt=\"iSpraak\" src=\"images/latin.png\" align=\"right\" width=\
 if ($mylang == "ja")
 {
 $bt = $_SESSION['block_text']; 
+//$pinyin = transliterator_transliterate('Any-Latin; Hiragana-Latin; Lower();', $bt);
 $api_key = $azure_api_tranliteration_key;
 $pinyin = api_Transliterate($mylang, $bt, $api_key);
 
@@ -300,6 +344,7 @@ $zhtext = "<img alt=\"iSpraak\" src=\"images/latin.png\" align=\"right\" width=\
 if ($mylang == "ar")
 {
 $bt = $_SESSION['block_text']; 
+//$pinyin = transliterator_transliterate('Any-Latin; Arabic-Latin; Lower();', $bt);
 
 $api_key = $azure_api_tranliteration_key;
 $pinyin = api_Transliterate($mylang, $bt, $api_key);
@@ -337,6 +382,24 @@ $zhtext = "<img alt=\"iSpraak\" src=\"images/latin.png\" align=\"right\" width=\
 }
 
 
+
+//trouble accessing transliteration API as of April 2022
+//$pinyin = "Sorry. The transliteration feature is currently unavailable.";
+
+/*
+
+eliminating javascript synth for now
+
+if ($mylang == "ja") { $synth = "ja-JP"; }
+if ($mylang == "ko") { $synth = "ko-KR"; }
+if ($mylang == "pt") { $synth = "none"; }
+if ($mylang == "pl") { $synth = "none"; }
+
+
+*/
+
+
+
 if ($mylang == "ar")
 {
 $iframe_text = "<iframe src=\"languages/arabic_sa.html\" width=\"600\" height=\"340\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
@@ -355,12 +418,14 @@ if ($mylang == "sv") { $synth = "none"; }
 
 //If a TTS file already exists in the directory, we are going to turn off the TTS icons
 $tts_file_exists= 'audio/'.$mykey.'_'.$mykey2.'.mp3'; 
+//echo "debug: $tts_file_exists";
 
 if (file_exists($tts_file_exists))
 {
 //file confirmed to reside on server, do not regenerate it
 //rather just put it into the default audio player
-$b = '../'.$tts_file_exists; 
+$b = '../'.$tts_file_exists;
+//echo "debug: b"; 
 
 }
 
@@ -373,6 +438,7 @@ if ($b == 1)
 {
 //Do not show the Green-Audio-Player before the TTS is generated
 //Eventually show / hide this element based on existence of audio file
+//$player_text = "<div id=\"tts_not_available\" style=\"display:none;\"><i>Reload this page to see iSpraak player.</i></div> ";
 }
 
 //Decide if we should display the MP3 audio player or not
@@ -381,6 +447,11 @@ if ($b == 1)
 
 if ($b !== "1")
 {
+//$player_text = "<br><EMBED SRC=\"http://phrants.net/ispraak/uploadmp3/$b\" HEIGHT=30 WIDTH=200><br>";
+
+//$player_text = "<audio controls><source src=\"uploadmp3/$b\" type=\"audio/mp3\">Your browser does not support the audio playback element.</audio>";
+
+//here is the new player as of 9/1/22 from Vijay and edited by Dan
 
 $player_text = " 
 
@@ -433,6 +504,22 @@ $player_text = "
 <script type=\"text/javascript\" src=\"javascript/ispraak_audio_player.js\"></script> 
 <br><br>
 ";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //also now disable synth since there is audio provided
@@ -542,7 +629,7 @@ $iframe_text = "<iframe src=\"asr_languages.html\" width=\"600\" height=\"340\" 
 if ($student_email == "" || $student_name == "")
 {
 	header('Location: ispraak.php?mykey='.$mykey.'&error=86&mykey2='.$mykey2);
-	
+	//echo "<br><br><h3><center> Oops! Something went awry!</h3><br><center>Please try this page: <a href=\"ispraak.php?mykey=$mykey\">REDIRECT</a></center><br><br><center>Please enter your e-mail and name when prompted!<br><br><br><center><img src=\"hal_error.png\" width=50>";
 }
 else
 {
@@ -596,12 +683,14 @@ setcookie("array1", $a1, time()+7200, '/');
 setcookie("array2", $a2, time()+7200, '/'); 
 
 echo "<div id=\"goForward\" class=\"goForward\" style=\"display:none;\"><a href=\"$new_array_URL\" class=\"cutelink4\"><img src=\"images/arrow_set.png\" class=\"pulse2\"></a></div>";
+//$activityset_next = "<div id=\"activityset_next\" style=\"display:none;\"> Go to next! <a href=\"$new_array_URL\" class=\"cutelink3\"><img src=\"images/arrow_set.png\" width=\"25\" style=\"display:inline; padding-left: 10px; vertical-align: middle;\"></a></div>";
 $activityset_next = "<div id=\"activityset_next\" style=\"display:none;\"> Go to next! <a href=\"$new_array_URL\" class=\"cutelink3\"><img src=\"images/arrow_set.png\" class=\"pulse\"></a></div>";
 
 
 if ($a1_count < 1)
 {
-$activityset_next = "<div id=\"activityset_next\" style=\"display:none;\"> Great Job, this set is Complete! <img src=\"images/checkmark.png\" class=\"pulse\"></div>";
+$activityset_next = "<div id=\"activityset_next\" style=\"display:none;\"> Set is Complete!<img src=\"images/checkmark.png\" class=\"pulse\">  Explore more sets <a href=\"explore.php\" class=\"cutelink3\">here</a>!
+</div>";
 
 }
 
@@ -618,6 +707,17 @@ else
 $active_set = ""; 
 }
 
+
+
+
+
+
+
+
+
+
+
+//<span style=\"font-size:small\">Push the mic button and practice speaking the text below:</span>
 
 echo "
 
@@ -637,7 +737,7 @@ echo "
 		<form id=\"ispraak\" class=\"ispraak_form\"  method=\"post\" action=\"makeit.php\">
 					<div class=\"form_description\">
 						
-					<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"> 
+					<a href=\"index.html\"><img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"></a> 
 			
 			$zhtext $synth_button
 			<br>

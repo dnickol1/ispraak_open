@@ -4,7 +4,7 @@
 * JavaScript
 * MySQL
 
-# To install a new instance of iSpraak, you will need to obtain the following in addition to the code from this repo: 
+## To install a new instance of iSpraak, you will need to obtain the following in addition to the code from this repo: 
 
 Google Developer API Credentials for TTS functionality
 

@@ -30,6 +30,7 @@ if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
   	$error = "Unable to connect to database."; 
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 //Get email address from query string 

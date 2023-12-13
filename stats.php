@@ -35,7 +35,8 @@ if (mysqli_connect_errno())
   	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
-//Example: https://www.ispraak.net/stats.php?mykey=1662152565&instructor_email=dnickol1@slu.edu&mykey2=Jb12984f0ba8d4740ef280bad88f73e7
+//Example: https://www.ispraak.net/stats.php?mykey=1651199103&instructor_email=dnickol1@slu.edu (reference)
+//Updated example: https://www.ispraak.net/stats.php?mykey=1662152565&instructor_email=dnickol1@slu.edu&mykey2=Jb12984f0ba8d4740ef280bad88f73e7
 
 //Get mykey from query string & declare session variable
 //If no variable found in query string, just initialize as Not Available
@@ -45,12 +46,19 @@ $email = $_GET['instructor_email'] ?? 'NA';
 
 $readable_date=date('m/d/y', $mykey);
 
+//$mykey_session= $_SESSION['mykey'];
 
 //Get variables from iSpraak GRADES table
 
-
+//$result = mysqli_query($msi_connect,"SELECT * FROM ispraak_stats WHERE activity_id='$mykey' AND instructor_email='$email' ORDER BY missed_word ASC");
 $result = mysqli_query($msi_connect,"SELECT * FROM ispraak_stats WHERE activity_id='$mykey' AND misc='$mykey2' AND instructor_email='$email' ORDER BY missed_word ASC");
+//$row = mysql_fetch_array($myresult);
 $num=mysqli_num_rows($result);
+
+
+$temail_hide = hide_email($email);
+ 
+
 
 if ($num < 1)
 {
@@ -90,7 +98,7 @@ echo "
                   
                    <img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\">
 
-			<br><br><br>Statistical Error Frequency Count since $readable_date for $email </b> 
+			<br><br><br>Statistical Error Frequency Count since $readable_date for $temail_hide</b> 
 			
 			<br></p>
 						
@@ -114,7 +122,9 @@ $darray = array();
 
 $resultC = mysqli_query($msi_connect,"SELECT * FROM ispraak_stats WHERE activity_id='$mykey' AND missed_word='$first_word'");
 $numC=mysqli_num_rows($resultC);
+//$fetch_array = mysqli_fetch_array($resultC); added by VJ
 
+//$lecture = $fetch_array["missed_word"] ?? null; added by VJ
 
 
 //nicer display if possible
@@ -128,7 +138,7 @@ echo "<div class=\"row\"><div class=\"column\">";
 
 echo "$first_word ($numC) <br><br>"; 
 
-
+//echo "$lecture"; added by VJ
 
 
 
@@ -181,6 +191,9 @@ echo "</div>";
 $counts = array_count_values($darray);
 arsort($counts);
 
+//print_r(array_count_values($darray));
+
+//print_r($counts);
 
 
   // get the first key (the word)
@@ -192,9 +205,11 @@ arsort($counts);
   $temp_value=array_values($counts);
   $word1 = array_shift($temp_value);
 
+  //echo "mm: $key1 and $word1";
 
   unset($counts["$key1"]) ;
   
+//print_r($counts);
 
 //get second word and key woot
 
@@ -207,6 +222,7 @@ arsort($counts);
   $temp_value2= array_values($counts);
   $word2 = array_shift($temp_value2);
 
+  //echo "mm: $key1 and $word1";
 
   unset($counts["$key2"]) ;
 
@@ -221,6 +237,7 @@ arsort($counts);
   $temp_value3=array_values($counts);
   $word3 = array_shift($temp_value3);
 
+  //echo "mm: $key1 and $word1";
 
   unset($counts["$key3"]) ;
 
@@ -235,6 +252,8 @@ arsort($counts);
   // get the first value (the number)
   $temp_value4=array_values($counts);
   $word4 = array_shift($temp_value4);
+
+  //echo "mm: $key1 and $word1";
 
   unset($counts["$key4"]) ;
 
@@ -256,6 +275,11 @@ arsort($counts);
 //for those languages
 
 //this may also NOT be true with the NEWER version of JPGRAPH
+
+
+
+
+//echo "<SPAN STYLE=\"background-color: #E6E6E6\">Visual of Top 4 Words Missed:</SPAN>";   
 
 
 $myresult2 = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey='$mykey' AND email='$email'");

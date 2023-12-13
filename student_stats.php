@@ -2,9 +2,11 @@
 
 /*
 
-This page displays all grades for a given activity key pair (mykey and mykey2) and can be 
-sorted by student name or by date completed. Displayed information includes name, email,
-score, date completed, and number of mistakes. 
+This page takes student email and displays a history of ALL missed words, all submitted
+activities with scores, and a link to build a custom student set
+
+Once this page is generated from roster.php, the URL is meant to be shared directly
+with the student. 
 
 */
 
@@ -92,6 +94,9 @@ echo"<hr class=\"alt\">";
 
 echo "<center>Click <a href=\"student_custom_set.php?email=$email&id=$sname\" class=\"cutelink3\" target=\"_blank\">here</a> to build a custom review activity set for $email</center>";
 
+//echo"<hr class=\"alt\">";
+
+//echo"<center>Click <a href=\"flashcard.php?email=$email&id=$sname\" class=\"cutelink3\" target=\"_blank\">here</a> to review the Flashcards!</center>";
 
 echo"<hr class=\"alt\"><br>";
 
@@ -126,8 +131,10 @@ while($j<$num2)
 	$date_end = date('m/d/y', $time);
 	$mykey2=mysqli_result($query_distinct,$j,"misc");
 	$score=mysqli_result($query_distinct,$j,"score");
+	//$key1=mysqli_result($myresult,$i,"mykey");
+	//$key2=mysqli_result($query_distinct,$i,"misc");
 	$effort_text=mb_strcut($effort, 0, 35, "UTF-8");
-	
+	//$newtext = '<i><span style="background-color:#e6f7ff"> → '. $effort . '</span></i>'; 
 	if ($cached_activity_id == $aid)
 	{
 		$multiple_submits++; 

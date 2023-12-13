@@ -34,6 +34,7 @@ $datay=array($g1,$g2,$g3,$g4,$g5);
 // Create the graph. These two calls are always required
 //changing 220 to 420 to accomodate longer words
 $graph = new Graph(320,300,'auto');
+//$graph->SetScale("textlin");
 $graph->SetScale('textlin',0,$hi_freak); 
 
 $theme_class=new UniversalTheme;

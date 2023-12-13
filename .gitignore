@@ -1,0 +1,17 @@
+.env
+fade.php
+config.php
+.htaccess
+error_log
+activity_log.txt
+log.txt
+archive/
+audio_saves/
+uploadmp3/
+.ftpquota
+.htaccess.no_htaccess.phpupgrader
+redirect.php
+logs.txt
+audio/
+.well-known/
+audio_rename_test_directory/
