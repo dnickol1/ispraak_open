@@ -1,0 +1,21 @@
+{
+    "require": {
+        "stripe/stripe-php": "^5.9",
+        "google/apiclient": "^2.0",
+        "google/cloud-text-to-speech": "^1.1",
+        "google/cloud-storage": "^1.21",
+        "vlucas/phpdotenv": "^4.1",
+        "swiftmailer/swiftmailer": "^5.4",
+        "auth0/auth0-php": "~7.0",
+        "simplesamlphp/simplesamlphp": "^1.19",
+        "lightsaml/lightsaml": "^2.3",
+        "adnanhussainturki/microsoft-api-php": "^0.03.0",
+        "google/cloud-translate": "^1.13",
+        "google/cloud-speech": "*"
+    },
+    "config": {
+        "allow-plugins": {
+            "simplesamlphp/composer-module-installer": true
+        }
+    }
+}

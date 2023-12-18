@@ -1,0 +1,32 @@
+version: "2"
+services:
+  webserver:
+    image: "moodlehq/moodle-php-apache:8.1"
+    depends_on:
+      - db
+      - mailpit
+    volumes:
+      - "./run/moodle:/var/www/html"
+      - "./assets/moodle/web/apache2_faildumps.conf:/etc/apache2/conf-enabled/apache2_faildumps.conf"
+      - "./assets/moodle/web/apache2_mailpit.conf:/etc/apache2/conf-enabled/apache2_mailpit.conf"
+    environment:
+      MOODLE_DOCKER_DBNAME: moodle
+      MOODLE_DOCKER_DBUSER: moodle
+      MOODLE_DOCKER_DBPASS: "m@0dl3ing"
+      MOODLE_DOCKER_BROWSER: firefox
+      MOODLE_DOCKER_WEB_HOST: "127.0.0.1"
+      MOODLE_DOCKER_WEB_PORT: "8000"
+    ports:
+      - "8000:8000"
+  db:
+    image: mysql:5.7
+    command: >
+                --character-set-server=utf8mb4
+                --collation-server=utf8mb4_bin
+                --innodb_file_format=barracuda
+                --innodb_file_per_table=On
+                --innodb_large_prefix=On
+  mailpit:
+    image: axllent/mailpit:v1.10
+    environment:
+      MP_WEBROOT: /_/mail/
