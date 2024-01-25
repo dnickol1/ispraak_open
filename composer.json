@@ -11,7 +11,9 @@
         "lightsaml/lightsaml": "^2.3",
         "adnanhussainturki/microsoft-api-php": "^0.03.0",
         "google/cloud-translate": "^1.13",
-        "google/cloud-speech": "*"
+        "google/cloud-speech": "*",
+        "phpmailer/phpmailer": "^6.9.1",
+        "pear/text_languagedetect":"1.0"
     },
     "config": {
         "allow-plugins": {
