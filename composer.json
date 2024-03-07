@@ -13,11 +13,18 @@
         "google/cloud-translate": "^1.13",
         "google/cloud-speech": "*",
         "phpmailer/phpmailer": "^6.9.1",
-        "pear/text_languagedetect":"1.0"
+        "pear/text_languagedetect":"1.0",
+        "Packback/Lti1p3": "6.0"
     },
     "config": {
         "allow-plugins": {
             "simplesamlphp/composer-module-installer": true
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/packbackbooks/lti-1-3-php-library"
+        }
+    ]
 }

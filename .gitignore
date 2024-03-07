@@ -18,3 +18,8 @@ audio_rename_test_directory/
 functions.php
 ispraak-neh-google.json
 jpgraph/
+
+# Files here
+private.key 
+platform.key 
+cert_suite_private.key

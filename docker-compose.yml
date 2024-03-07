@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   php:
-    image: php:7.4.33-fpm
+    image: php:8.2-fpm
     container_name: php-fpm
     ports:
       - "80:80"
@@ -12,33 +12,22 @@ services:
     command: php -S 0.0.0.0:80
     depends_on:
       - db
-  moodle:
-    image: moodlehq/moodleapp
-    container_name: moodle
-    ports:
-      - "8100:8100"
-    environment:
-      - VIRTUAL_HOST=moodle.local
+
   db:
-    image: mysql:5.7 # Replace with your specific MySQL version
+    image: mysql:8.0
     container_name: mysql-database
     ports:
-      - "3306:3306"
+      - "3308:3306"
     volumes:
       - dbdata:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ispraak
-      MYSQL_DATABASE: ispraak
-      MYSQL_USER: ispraak
-      MYSQL_PASSWORD: ispraak
-
-  mail:
-    image: mailhog/mailhog:latest
-    container_name: mailhog
-    ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web interface
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
 
 volumes:
   dbdata:
+    driver: local
+  moodle_dbdata:
     driver: local
