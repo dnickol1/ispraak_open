@@ -1,5 +1,7 @@
 <?php
 
+//this page not being used in production
+
 session_start();
 
 include_once("../../config_ispraak.php");
@@ -9,7 +11,6 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 
 //query
 $language=$_POST['language'];
-
 
 $result = mysqli_query($msi_connect,"SELECT * FROM ispraak_sets where language='$language' AND shared='public' GROUP BY set_name");
 
@@ -48,6 +49,7 @@ $set_id=mysqli_result($result,$i,"set_id");
 //Should look like this: https://www.ispraak.net/sets_students.php?id=75
 echo "<li><a href=\"sets_students.php?id=$set_id\" class=\"cutelink3\">$set_name</a> ($language) $shared </li>";
 
+//echo "<li>$key3 | $key2 | $key1</li>"; 
 $i++;
 }
 }

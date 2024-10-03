@@ -22,16 +22,13 @@ $scopes_array = ["User.Read"];
 if (isset($_GET['code'])) 
 {
 
-	//Was getting type errors, sometimes, when sending NULL instead of a string... adding the ?? 'NA' which seems to be working now
-	
 	$tenant = "common";
 	$client_id = $azure_client_id;  
 	$client_secret = $azure_client_secret; 
 	$callback = "https://ispraak.net/azure_callback.php";
 	$scopes = ["User.Read"];
 	$auth = new Auth($tenant, $client_id, $client_secret,$callback, $scopes);
-	
-	
+		
 	$tokens = $auth->getToken($_REQUEST['code'], $_REQUEST['state']);
 	$accessToken = $tokens->access_token;
 	$auth->setAccessToken($accessToken);

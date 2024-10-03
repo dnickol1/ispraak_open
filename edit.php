@@ -47,7 +47,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
-  	
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 //define the query into a string after escaping variables
@@ -90,8 +90,8 @@ echo "
 		<form id=\"ispraak\" class=\"ispraak_form\"  method=\"post\" action=\"makeit.php\">
 					<div class=\"form_description\">
 					
-					
-					<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"> 
+					<a href=\"index.html\">
+					<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"></a> 
 	<br><br><br></div>
 		Your activity has been created and is now ready to be shared. $message Remember to only share the student link (left) and to keep your instructor link (right) private. You can further manage this activity by logging on to the instructor dashboard.<br>
 								<br><br>

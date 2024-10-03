@@ -67,6 +67,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -76,7 +77,8 @@ $myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey='$myke
 $j = 0;
 $temail=mysqli_result($myresult,$j,"email");
 $student_name_field = "Your Name: "; 
-$student_name_field2 = "By sharing your name and email, your instructor can find and see your submission! <br><br>If you'd rather stay anonymous, just click <a href=\"review.php?mykey=$mykey&mykey2=$mykey2&mykey3=anonymous\" class=\"cutelink\">here!</a>"; 
+//$student_name_field2 = "By sharing your name and email, your instructor can find and see your submission! <br><br>If you'd rather stay anonymous, just click <a href=\"review.php?mykey=$mykey&mykey2=$mykey2&mykey3=anonymous\" class=\"cutelink\">here!</a>"; 
+$student_name_field2 = "By sharing your name and email, your instructor can find and see your submission! <br><br><img src=\"\images/anon.png\" width=\"20\" align=\"right\">   If you'd rather stay anonymous, just click <a href=\"review.php?mykey=$mykey&mykey2=$mykey2&mykey3=anonymous\" class=\"cutelink\">here!</a>"; 
 $student_name_field3 = "maxlength=\"255\""; 
 $field_status = "";
 $student_name_field4 = "Your Email: ";
@@ -206,7 +208,7 @@ echo "$ispraak_header
 			
 			<div class=\"alert\" id=\"alert\" style=\"display:none\">
   <span class=\"closebtn\" onclick=\"this.parentElement.style.display='none';\">&times;</span> 
-  <strong>Warning: Google Chrome is required to use iSpraak!</strong>
+  <strong>Warning: Google Chrome is strongly recommended for iSpraak voice activities! You may experience errors with this browser if you continue.</strong>
 </div>	
 		</form>	
 		$ispraak_footer
@@ -221,6 +223,9 @@ $active_set
 	{
 	document.getElementById(\"alert\").style.display = \"block\";
 	}
+	
+	notChrome();
+	
 </script>	
 	
 	

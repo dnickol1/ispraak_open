@@ -124,7 +124,7 @@ echo "$ispraak_header
 			
 		$ispraak_logo<br><br><br>
 					
-		<center>Click an activity set below to begin practicing!</center> <br>";
+		<center>Click an activity set below to begin practicing. Starred sets are our favorites!</center> <br>";
 
 //show all existing sets inside this form
 
@@ -141,6 +141,14 @@ $set_name=mysqli_result($result,$i,"set_name");
 $set_id=mysqli_result($result,$i,"set_id");
 $set_email=mysqli_result($result,$i,"email");
 
+//lets highlight anything made by llc@slu.edu 
+$starred_set = ""; 
+
+if ($set_email == "llc@slu.edu")
+{
+	$starred_set = "★"; 
+}
+
 //Should look like this: https://www.ispraak.net/sets_students.php?id=75
 
 //new query to display the number of activities in this particular set
@@ -151,9 +159,10 @@ $num_sets=mysqli_num_rows($myresult2);
 if($num_sets>1)
 {
 
-echo "<a class=\"button6\" href=\"sets_students.php?id=$set_id\" class=\"cutelink3\">$set_name ($num_sets)<br></a>";
+echo "<a class=\"button6\" href=\"sets_students.php?id=$set_id\" class=\"cutelink3\">$starred_set $set_name ($num_sets)<br></a>";
 }
 
+//echo "<li>$key3 | $key2 | $key1</li>"; 
 $i++;
 }
 }

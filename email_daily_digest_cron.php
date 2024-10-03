@@ -34,6 +34,7 @@ else
 	if (mysqli_connect_errno())
 	{
 		echo "Unable to connect to the database. Please try again later.";
+  		//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 	}
 
 	//Going to identify activities with submissions in past 24 hours
@@ -59,7 +60,7 @@ else
      
      	$student_body = "<h3>Recent iSpraak Activity for $tname</h3>$start_body";
      
-     	$endbody = "</ul>For technical assistance, please send an e-mail to help@ispraak.com. This message has been sent from an address that is not monitored. If you don't want to receive the daily digest, you can <a href=\"$domain_name/unsubscribe.php?id=$tname&action=check&type=NDD\">unsubscribe</a>.";
+     	$endbody = "</ul>For technical assistance, please send an e-mail to help@ispraak.net. This message has been sent from an address that is not monitored. If you don't want to receive the daily digest, you can <a href=\"$domain_name/unsubscribe.php?id=$tname&action=check&type=NDD\">unsubscribe</a>.";
 
      	$result2 = mysqli_query($msi_connect, "SELECT DISTINCT activity_id FROM ispraak_grades WHERE timestamp > $one_day_ago AND teacher_email = '$tname'");
      	$row2 = mysqli_fetch_array($result2);
@@ -133,7 +134,7 @@ else
 	else
 	{
 		$mailz = $smtp->send($email, $headers, $full_email_body);
-		$mailz = $smtp->send($email_cc, $headers, $full_email_body);
+		//$mailz = $smtp->send($email_cc, $headers, $full_email_body);
 		
 		echo "<br>Emails sent to $email and $email_cc";
 		

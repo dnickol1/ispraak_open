@@ -59,6 +59,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -97,6 +99,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -133,7 +137,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
-
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -289,8 +294,22 @@ else
 	$set_id=mysqli_result($myresult,0,"set_id");
 	
 
+	//should we show an LTI link or not?
+	
+	$lti_button = ""; 
+	$lti_enabled = "Disabled"; 
+	$myresult_lti = mysqli_query($msi_connect, "SELECT * FROM ispraak_user_prefs2 where email='$email' ORDER BY id DESC");
+	$rowcount=mysqli_num_rows($myresult_lti);	
+	if ($rowcount > 0) { $lti_enabled =mysqli_result($myresult_lti,0,"pref_03"); }
+	if ($lti_enabled == "Enabled")
+	{
+		//insert button on the edit view for flexible scoring
+		$lti_button = "<a href=\"modify.php?token=$ispraak_token&email=$email&action=flex&mykey=$mykey&mykey2=$mykey2\" class=\"cutelink3\"><img src = \"images/flex.png\" align=\"right\" width=\"40\"></a>";
+		$lti_button = "<a href=\"sets_lti.php?id=$set_id\" class=\"cutelink3\" target=\"_blank\">LTI Link</a> | ";
+	}
+
 	echo "<a href=\"sets.php?action=trash&token=$ispraak_token&email=$email&set_id=$set_id&set_name=$set_name\" class=\"cutelink4\"><img src = \"/images/trash_it.png\" width=\"30\" align=\"right\"></a>";
-	echo "<a href=\"sets.php?action=view&token=$ispraak_token&email=$email\" class=\"cutelink3\">← Go Back</a> | <a href=\"sets_students.php?id=$set_id\" class=\"cutelink3\" target=\"_blank\">Student Link</a> | <a href=\"sets_results.php?id=$set_id&token=$ispraak_token&email=$email&language=$language\" class=\"cutelink3\">Results</a><br><br> ";		
+	echo "<a href=\"sets.php?action=view&token=$ispraak_token&email=$email\" class=\"cutelink3\">← Go Back</a> | $lti_button<a href=\"sets_students.php?id=$set_id\" class=\"cutelink3\" target=\"_blank\">Student Link</a> | <a href=\"sets_results.php?id=$set_id&token=$ispraak_token&email=$email&language=$language\" class=\"cutelink3\">Results</a><br><br> ";		
 	echo "Click on your iSpraak activities to be included in <strong>$set_name:</strong><br><br>";
 	
 }
@@ -315,6 +334,7 @@ $j = $i+1;
 $key1=mysqli_result($myresult,$i,"mykey");
 $key2=mysqli_result($myresult,$i,"mykey2");
 $key3=mysqli_result($myresult,$i,"blocktext");
+//$key4=substr($key3, 0, 42);
 $key4=mb_strcut($key3, 0, 42, "UTF-8");
 
 $key5 = $key4 . ""; 
@@ -494,9 +514,12 @@ $email=$_POST['email'];
 
 //Substitute reserved apostrophe with a directional one to fix add and remove bug
 //and substitute ampersand with an alternative one
+//and substitute hashtag as well
+
 $set_name = str_replace("'","’",$set_name); 
 $set_name = str_replace("&","＆",$set_name); 
 $set_name = str_replace("\"","-",$set_name); 
+$set_name = str_replace("#","⌗",$set_name); 
 
 
 //connect to the database
@@ -506,6 +529,8 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
+  	//echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -522,6 +547,8 @@ $mykey2 = "empty";
 
 if($set_name != strip_tags($set_name))
 {
+  // this contains HTML  
+  	//echo "Error inserting record. HTML detected in set name. Press back and try again."; 
 
 }
 else
@@ -589,6 +616,7 @@ else
 //Confirmation that record was inserted, now display all instructor sets?
 
 	$newURL = "sets.php?action=view&email=$email&token=$ispraak_token";
+	//echo "success inserting record - $set_name for email is $email"; 
 	header('Location: '.$newURL);
 
 }
@@ -600,6 +628,16 @@ mysqli_close($msi_connect);
 
 //above this bracket is the insert function
 }
+
+
+
+
+
+
+
+
+
+
 
 //above this bracket user is authenticated
 }

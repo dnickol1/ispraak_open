@@ -31,12 +31,18 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 $ispraak_token = mysqli_real_escape_string($msi_connect, $ispraak_token);
 $auth_email = mysqli_real_escape_string($msi_connect, $auth_email);
 
+//Check authentication
+
 $myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_auth where token='$ispraak_token' AND email='$auth_email'");
 $j = 0;
 $auth_time=mysqli_result($myresult,$j,"auth_time");
 $auth_time_expire = $auth_time + 25200; 
 $ispraak_time = time();
 $two_days = ($ispraak_time - 172800); 
+$one_week = ($ispraak_time - 604800); 
+$one_month = ($ispraak_time - 2592000); 
+$two_months = ($ispraak_time - 5270400); 
+
 $auth_time_expire2 = ($ispraak_time - 25200); 
 
 echo "$ispraak_header
@@ -61,7 +67,7 @@ if ($permission == "good" && $auth_email == "$ispraak_admin_email")
 		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey > '$two_days' ORDER BY mykey DESC");
 		$num=mysqli_num_rows($myresult);	
 			
-		echo "<br>$num recently created activities for all instructors: <br><br>";
+		echo "<br>$num recently created activities for all instructors | <a href=\"admin_reassign.php?token=$ispraak_token&email=$auth_email\" class=\"cutelink3\">(Reassign)</a><br><br>";
 
 				
 		$i=0;
@@ -151,7 +157,7 @@ if ($permission == "good" && $auth_email == "$ispraak_admin_email")
 
 		$tts_files = $filecount;
 
-		echo "<br>$mp3_files user mp3 files uploaded and $tts_files TTS files generated<br>";	
+		echo "<br>$mp3_files user files provided (uploaded/recorded) and $tts_files TTS files generated<br>";	
 		
 		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak");
 		$num=mysqli_num_rows($myresult);	
@@ -172,8 +178,36 @@ if ($permission == "good" && $auth_email == "$ispraak_admin_email")
 		$num=mysqli_num_rows($myresult);
 		
 		echo "<br>$num missed words identified since 2023.<br>";	
+				
+		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey > '$one_week' ORDER BY mykey DESC");
+		$num=mysqli_num_rows($myresult);
 		
-	
+		echo "<br>Activities made: past week ($num), ";	
+		
+		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey > '$one_month' ORDER BY mykey DESC");
+		$num=mysqli_num_rows($myresult);
+		
+		echo "past month ($num), "; 
+		
+		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey > '$two_months' ORDER BY mykey DESC");
+		$num=mysqli_num_rows($myresult);
+		
+		echo "past two months ($num) "; 
+		
+		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_grades where timestamp > '$one_week' ORDER BY timestamp DESC");
+		$num2=mysqli_num_rows($myresult);	
+		
+		echo "<br><br>Activities completed: past week ($num2), ";	
+		
+		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_grades where timestamp > '$one_month' ORDER BY timestamp DESC");
+		$num2=mysqli_num_rows($myresult);	
+		
+		echo "past month ($num2), "; 
+		
+		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_grades where timestamp > '$two_months' ORDER BY timestamp DESC");
+		$num2=mysqli_num_rows($myresult);	
+		
+		echo "past two months ($num2)"; 
 		
 		
 //end permission is good 

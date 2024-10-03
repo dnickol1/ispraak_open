@@ -1,5 +1,12 @@
 <?php
 
+/*
+
+This links from roster.php and allows whatever roster information being displayed
+to be saved in a CSV file download. Nothing displays here if user is authenticated properly.  
+
+*/
+
 
 //start the session
 session_start();
@@ -41,7 +48,6 @@ if ($permission == "good")
 //define the query - QUERY for all UNIQUE student EMAILS associated with the instructor_email SORT by student name from ispraak_grades.
 $myresult = mysqli_query($msi_connect, "SELECT student_name, student_email, score, effort_text, missed_words FROM ispraak_grades WHERE teacher_email='$email' AND student_email!='guest@ispraak.net' AND timestamp > '$filter_time' ORDER BY timestamp ASC");
 
-
 header('Content-Type: text/csv; charset=utf-8'); 
 header('Content-Disposition: attachment; filename=ispraak_grades.csv');  
 $output = fopen("php://output", "w"); 
@@ -52,6 +58,7 @@ fputs($output, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
 while ($column = mysqli_fetch_field($myresult)) {
 	$column_names[] = $column->name;
 }
+
 
 $column_names=array("Student Name","Student Email","Score","Submission","Missed Words");
 

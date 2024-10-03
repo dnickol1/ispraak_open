@@ -11,11 +11,6 @@ and instructor link to access the activity.
 //Continues Session from previous PHP page
 session_start();
 
-//Comment below lines out to stop error reporting
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 //Get database and configuration variables, and custom functions
 include_once("../../config_ispraak.php");
 
@@ -24,6 +19,10 @@ ini_set("include_path", '/home2/dnickol1/php:' . ini_get("include_path") );
 
 //Do not use default PHP mail function
 require_once "Mail.php";
+
+//Detect language for English
+require_once "Text/LanguageDetect.php";
+
 
 //Look up IP and USER Agent for Logging and SPAM control
 $visitor_ip = getIP();
@@ -50,7 +49,6 @@ $logtxt = "\n $email ($language)($audiofile) honey: $honey_pot IP: $visitor_ip a
 fwrite($mylogfile, $logtxt);
 fclose($mylogfile);
 
-
 //create an error message variables, by default no error and everything assumed good 
 $error_saving_db = "<p style=\"color:green\">Database connection: ✓</span>";
 $vcode="good";
@@ -63,6 +61,7 @@ if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
   	$vcode = "bad";
+
 }
 else
 {
@@ -73,10 +72,10 @@ $audiofile = mysqli_real_escape_string($msi_connect, $audiofile);
 $blocktext = mysqli_real_escape_string($msi_connect, $blocktext);
 }
 
+
 //create an ID pair for this activity
 $mykey = time();
 $mykey2=substr(str_shuffle("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 1).substr(md5(time()),1);
-
 
 //make session variables to be used by MP3 uploader
 $_SESSION['mykey'] = $mykey;
@@ -94,6 +93,22 @@ if ($email == "")
 {
 	$vcode = "bad";
 	$warnyou = "<br><p style=\"color:red\">Double check that e-mail address!</p>";
+}
+
+//check if text is actually English 
+if ($language == "en") 
+{
+	//very short texts cannot be reliably parsed to determine language, so check for length
+	$detect_length = strlen($blocktext);
+	if ($detect_length > 30)
+	{
+		$match = detectLanguage($blocktext,$language);
+		if($match == false) 
+		{
+		$vcode = "bad";
+		$warnyou = "<br><p style=\"color:red\">Oops. Language mismatch detected.<br><br> Please check your spelling, language choice, or reformulate your prompt.</p>";
+		}
+	}
 }
 
 //check for empty variables
@@ -159,7 +174,6 @@ if (strpos($blocktext,'bit.ly') == true)
 }
 
 
-
 if (strpos($blocktext,'@') == true) 
 {
 	$vcode = "bad";
@@ -184,12 +198,6 @@ if($blocktext != strip_tags($blocktext))
 }
 
 
-
-
-
-
-//honey pot entries from spammers look the same, range of numbers between 100,000 and 200,000
-//could change this to just check if ANYTHING is sent as a variable here
 if (is_numeric("$honey_pot")) 
 { 
 	if ($honey_pot > 100000)
@@ -200,11 +208,19 @@ if (is_numeric("$honey_pot"))
  
 }
 
+
+if (strpos($honey_pot,'@') == true) 
+{
+	$vcode = "bad";
+	$warnyou = "<br><p style=\"color:red\">Unable to create activity. Please disable autofill.</p>";
+}
+
 //end anti-spam measures... more can be added as logs indicate new problems
 
 if ($vcode == "good")
 {
 
+//add both mykey (time) and mykey2 (random) and an auto increase column
 
 //define the query
 $query = "INSERT INTO ispraak VALUES ('$email', '$language', '$audiofile', '$blocktext','$mykey', '$mykey2','')";
@@ -213,7 +229,7 @@ $query = "INSERT INTO ispraak VALUES ('$email', '$language', '$audiofile', '$blo
 //determine if it was a good insert
 $good_insert = mysqli_query($msi_connect, $query);
 
-//new IF statement to avoid duplicate mykey issue
+//new monster IF statement to avoid duplicate mykey issue
 //or any other INSERT problem
 
 if (!$good_insert)
@@ -263,6 +279,22 @@ else
 //new activity was inserted
 
 
+//if this request came from the LTI, you need to update that database as well
+//for development purposes, putting no for now
+$lti_running = "no";
+
+if ($lti_running === "yes")
+{
+	$role = "instructor"; 
+	$misc999 = "999"; 
+	$query2 = "INSERT INTO ispraak_lti VALUES ('$context_id', '$mykey', '$email', '$role','$misc999','$misc999','$mykey','')";
+	mysqli_query($msi_connect, $query2);
+}
+else
+{
+
+//2024, LTI NOT running, so send an e-mail
+
 $helpu = "<br><br>For other help and activity creation guidelines, check out our
  help page <a href=\"$domain_name/help.html\">here.</a> If you don't want to receive these activity creation e-mails, you can <a href=\"$domain_name/unsubscribe.php?id=$email&action=check&type=NCE\">unsubscribe</a>.";
 
@@ -271,8 +303,10 @@ $blocktext_strip = stripcslashes($blocktext);
 $to5 = "slulanguages@gmail.com";
 $subject = "iSpraak Activity Created";
 $from = "iSpraak <ispraak.bot@ispraak.com>";
-$student_body = "<table border = 0 width = 500><tr><td><h3>Your iSpraak Links</h3>New activity has been created for $email:<br><br><b>$blocktext_strip</b><br><br>Shareable student link: <a href=\"$domain_name/ispraak.php?mykey=$mykey&mykey2=$mykey2\">HERE</a><br>Private instructor link: <a href=\"$domain_name/grades.php?mykey=$mykey&mykey2=$mykey2\">HERE</a></b><br><br>For technical assistance, please send an e-mail to help@ispraak.com. This message has been sent from an address that is not monitored. $helpu </td></tr>";
+$student_body = "<table border = 0 width = 500><tr><td><h3>Your iSpraak Links</h3>New activity has been created for $email:<br><br><b>$blocktext_strip</b><br><br>Shareable student link: <a href=\"$domain_name/ispraak.php?mykey=$mykey&mykey2=$mykey2\">HERE</a><br>Private instructor link: <a href=\"$domain_name/grades.php?mykey=$mykey&mykey2=$mykey2\">HERE</a></b><br><br>For technical assistance, please send an e-mail to help@ispraak.net. This message has been sent from an address that is not monitored. $helpu </td></tr>";
 $student_body2 = "<table border = 0 width = 500><tr><td><h3>iSpraak Links for $email</h3><br>New activity #$mykey has been created.<br><br>Student link: <a href=\"$domain_name/ispraak.php?mykey=$mykey&$mykey2\">HERE</a><br>Instructor link: <a href=\"$domain_name/grades.php?mykey=$mykey&dou=courr&mykey2=$mykey2\">HERE</a></b><br><br>For technical assistance, please send an e-mail to help@ispraak.com. This message has been sent from an address that is not monitored. $helpu </td></tr>";
+
+//new variables for august 2018
 
 $headers = array ('From' => $from,
   'To' => $email,
@@ -290,10 +324,12 @@ $smtp = Mail::factory('smtp',
     'username' => $mail_username,
     'password' => $mail_password));
 
+
 //has this person opted out of e-mail communication, let's find out
     
     $tname2 = mysqli_real_escape_string($msi_connect, $email);
     $myresultw = mysqli_query($msi_connect, "SELECT * FROM ispraak_unsubscribe WHERE email = '$tname2' AND email_pref_code2 = 'NCE'");
+	//$numw=mysql_numrows($myresultw);
 	
 	$numw=mysqli_num_rows($myresultw);
 	
@@ -305,12 +341,11 @@ $smtp = Mail::factory('smtp',
 	} 
 	else
 	{
-		//below line sends a copy to our generic gmail
 		$mailz = $smtp->send($email, $headers, $student_body);
 	
 	}
 
-
+}
 
 //in this condition, the user will rely on TTS pronunciation model 
 
@@ -335,8 +370,8 @@ echo "
 		<form id=\"ispraak\" class=\"ispraak_form\"  method=\"post\" action=\"makeit.php\">
 					<div class=\"form_description\">
 					
-					
-					<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"> 
+					<a href=\"index.html\">
+					<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"></a> 
 	<br><br><br></div>
 		Your activity has been created and is now ready to be shared. Remember to only share the student link (left) and to keep your instructor link (right) private. You can further manage this activity by logging on to the instructor dashboard.<br>
 								<br><br>
@@ -557,6 +592,10 @@ echo "
 
 
 }
+
+
+
+
 
 //close your connection to the DB
 mysqli_close($msi_connect);

@@ -29,6 +29,7 @@ if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
   	$error = "Unable to connect to database."; 
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 //Get mykey from query string & declare session variable or declare as NA
@@ -114,6 +115,11 @@ echo "<div class=\"tbl\">
 </div><img src=\"images/top.png\" width=\"200\" height=\"7\">
 <i><span style=\"color:gray\">$sname said: $seffort</i></span><br><br>"; 
 
+
+/*
+echo "Student: $sname ($semail) | Score: $sscore | Missed Word Count: $smissed <br> ";
+echo "Text submitted: <i>$seffort</i> <br>Date: $readable_date<br><br>";
+*/
 
 
 $i++;

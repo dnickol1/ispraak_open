@@ -34,8 +34,6 @@ if (mysqli_connect_errno())
   	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
-//Example: https://www.ispraak.net/stats.php?mykey=1662152565&instructor_email=dnickol1@slu.edu&mykey2=Jb12984f0ba8d4740ef280bad88f73e7
-
 //Get mykey from query string & declare session variable
 //If no variable found in query string, just initialize as Not Available
 $mykey = $_GET['mykey'] ?? 'NA';
@@ -44,7 +42,8 @@ $email = $_GET['instructor_email'] ?? 'NA';
 
 $readable_date=date('m/d/y', $mykey);
 
-
+$temail_hide = hide_email($email);
+ 
 //Get all student grades from the specified activity and group by their email
 $myresult = mysqli_query($msi_connect, "SELECT DISTINCT * FROM ispraak_grades WHERE activity_id = '$mykey' ORDER BY student_name ASC, activity_id ASC");
 $num=mysqli_num_rows($myresult);
@@ -64,6 +63,24 @@ if ($num < 1)
 
 }
 else{
+
+
+//confirm if we should show the IPA selector, based on labs preferences
+
+$ipa_stats_link = "";
+$ipa_stats_status = "Disabled"; 
+//$flex_score_indicator = "";
+$msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
+//$flexible_scoring = "Strict"; 
+$myresultx = mysqli_query($msi_connect, "SELECT * FROM ispraak_user_prefs2 where email='$email' ORDER BY id DESC");
+$rowcount=mysqli_num_rows($myresultx);	
+if ($rowcount > 0) { $ipa_stats_status =mysqli_result($myresultx,0,"pref_04"); }
+if ($ipa_stats_status == "Enabled")
+{
+	$ipa_stats_link = " / <a href=\"stats_ipa.php?mykey=$mykey&instructor_email=$email&mykey2=$mykey2\" class=\"cutelink3\">IPA</a>";
+}
+
+
 
 
 echo "
@@ -87,14 +104,14 @@ echo "
                   
                    <img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\">
 
-			<br><br><br>Student improvement stats since $readable_date for $email ($num total records)</b> 
+			<br><br><br>Student improvement stats since $readable_date for $temail_hide ($num total records)</b> 
 			
 			<br></p>
 						
 		</div>						
 			<ul >";
 			
-echo "<a href=\"stats.php?mykey=$mykey&mykey2=$mykey2&instructor_email=$email\" class=\"cutelink3\">Missed Words Stats</a> / <SPAN STYLE=\"background-color: #E6E6E6\">Progress Stats</span><br><br>"; 
+echo "<a href=\"stats.php?mykey=$mykey&mykey2=$mykey2&instructor_email=$email\" class=\"cutelink3\">Missed Words Stats</a> / <SPAN STYLE=\"background-color: #E6E6E6\">Progress Stats</span> $ipa_stats_link<br><br>"; 
 
 
 //Initative caching system to store email, mykey, top scores, score array, and timestamp arrays
@@ -105,7 +122,7 @@ $cached_score_array = [];
 $cached_low_timestamp = "0";
 $cached_high_timestamp = "0";
 $cached_differences = []; 
-
+$cached_attempts = [];
 
 		echo "<div class=\"tbl\">
 		
@@ -138,13 +155,15 @@ $smisc=mysqli_result($myresult,$i,"misc");
 $ukey=mysqli_result($myresult,$i,"uniquekey");
 $aid=mysqli_result($myresult,$i,"activity_id");
 
+//Uncomment below to see data for each record
+//echo"<br>Record: $i - $aid - $sname - $semail - $sscore - $stime";
 
 if ($cached_activity_id == $aid && $cached_email == $semail)
 {
-	
+
 	//since this is a duplicate score for the same email address, put the score into an array 
 	array_push($cached_score_array, $sscore);
-	
+
 
 }
 else
@@ -160,6 +179,8 @@ else
 		$improvement = ($max - $first_item); 
 		$last_item = end($cached_score_array); 
 		array_push($cached_differences, $improvement); 
+		array_push($cached_attempts, $count_items); 
+		
 		
 		echo "<div class=\"tbl\">
 		
@@ -193,18 +214,60 @@ $var1 = array_sum($cached_differences);
 $var2 = count($cached_differences);
 
 
+function std_deviation($my_arr)
+{
+   $no_element = count($my_arr);
+   $var = 0.0;
+   $avg = array_sum($my_arr)/$no_element;
+   foreach($my_arr as $i)
+   {
+      $var += pow(($i - $avg), 2);
+   }
+   return (float)sqrt($var/$no_element);
+}
+
+
+function calculateMedian($array) {
+    if (empty($array)) {
+        return null;
+    } else {
+        sort($array);
+        $lowMiddle = $array[floor((count($array) - 1) / 2)];
+        $highMiddle = $array[ceil((count($array) - 1) / 2)];
+        return ($lowMiddle + $highMiddle) / 2;
+    }
+}
+
+
+
+
 if ($var1 == "0" || $var2 == "0")
 {
-echo "<br>Insufficient data to calculate progress stats on this activity."; 
+echo "<p style=\"color:red\">Insufficient data to calculate progress stats on this activity.</p>"; 
 }
 else
 {
 $average = array_sum($cached_differences)/count($cached_differences);
-echo "<br>Average improvement of $average % across all records for this activity <i>(first vs. highest)</i>.";
- 
+$average = round($average, 2);
+
+$average_attempts = array_sum($cached_attempts)/count($cached_attempts);
+$average_attempts=round($average_attempts, 2); 
+
+$std=std_deviation($cached_differences);
+$std=round($std, 2); 
+
+$median=calculateMedian($cached_differences);
+$median=round($median, 2); 
+
+$values = array_count_values($cached_differences); 
+$mode = array_search(max($values), $values);
+
+
+echo "<br>Average improvement of $average% (SD=$std, mode=$mode%, median=$median%) across all records<i> (first vs. highest)</i> with an average of $average_attempts attempts.<br>";
+
 }
 
-echo "<br><br>For this report to be useful, students must complete multiple submissions of this activity.";
+echo "<br>For this report to be useful, students must complete multiple submissions of this activity.";
 
 
 			

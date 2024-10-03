@@ -6,7 +6,7 @@ This page displays a login screen and users can be authenticated via an e-mailed
 a Google Account, or a Microsoft account. 
 
 Token authentication begins with a database check for the e-mail address, expiry time,
-and token string. Assuming these are valid, furhter authentication is dependent on
+and token string. Assuming these are valid, further authentication is dependent on
 either IP address (in database) verification or cookie (in browser) verification. 
 
 When the user is authenticated, a dashboard is displayed with options for the user
@@ -71,6 +71,23 @@ if ($action == "email")
 	//get the IP address
 	$visitor_ip = getIP();
 	
+	//block Moldova bot from Feb 2024
+	$ip_details = json_decode(file_get_contents("http://ipinfo.io/".$visitor_ip)); 
+	$ip_city = $ip_details->city;
+	$ip_region = $ip_details->region; 
+	if ($ip_city=="Chisinau" || $ip_city=="Motoyoyogichō") 
+	{ 
+		$login = "bad"; 
+		$logrightnow = time();
+		$logrightnow = date('m/d/Y H:i:s', $logrightnow);
+		$mylogfile = fopen("activity_log.txt", "a") or die("Unable to open log file!");
+		$logtxt = "\n $auth_email has been blocked from $ip_city at $logrightnow \n";
+		fwrite($mylogfile, $logtxt);
+		fclose($mylogfile);
+	}
+	
+	
+	
 	if ($login == "good")
 	{
 	
@@ -124,6 +141,7 @@ if ($action == "email")
     		$auth_body = "Your authentication request to iSpraak has been received. Please use the following link: $domain_name/login.php?token=$ispraak_token&email=$email";
     	
     		$mailz = $smtp->send($email, $headers, $auth_body);	
+    		//echo "debuggin - $mailz";
 		}
 			
 		//end no DB problem IF statement
@@ -232,12 +250,15 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
 //no database error
 //check to see if the authenticatin token is good for this email address and IP and has not expired
 
+//$decrypt_email=decrypt($email);
+//echo "decrypted is $decrypt_email ";
 
 $myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_auth where token='$ispraak_token' AND email='$auth_email'");
 $j = 0;
@@ -251,6 +272,8 @@ $visitor_ip = getIP();
 $auth_time_expire = $auth_time + 25200; 
 $ispraak_time = time();
 
+//Document how this user authenticated (Debugging Only)
+//$verify_identity = "Token and IP";
 
 //check all the variables for a valid session
 
@@ -266,6 +289,9 @@ if ($id_cookie == $id_cookie_challenge)
 {
 	$visitor_ip = $auth_ip; 
 	
+	//Document how this user authenticated (debugging only)
+	//$verify_identity = "Token and Cookie";
+
 }
 }
 
@@ -300,8 +326,8 @@ if ($visitor_ip == $auth_ip && $auth_time_expire > $ispraak_time)
 <body id=\"main_body\" ><img id=\"top\" src=\"images/top.png\" alt=\"\">
 <div id=\"form_container\"><div id=\"headerBar\"></div>
 <form id=\"ispraak\" class=\"ispraak_form\"  method=\"post\" action=\"#\">
-<div class=\"form_description\">
-<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"> 
+<div class=\"form_description\"><a href=\"index.html\">
+<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"></a> 
 <img src = \"images/gohome.png\" align=\"right\" width=\"40\">			
 
 <br><br><br><center>You have successfully authenticated ($auth_email)<br>
@@ -309,7 +335,7 @@ if ($visitor_ip == $auth_ip && $auth_time_expire > $ispraak_time)
 			</p><ul>
 			
 			
-			<center><a href=\"roster.php?email=$auth_email&token=$ispraak_token\" class=\"cutelink3\" class=\"cutelink3\"> Roster </a> | <a href=\"sets.php?action=view&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Sets</a> | <a href=\"modify.php?action=review&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Edit</a> | <a href=\"delete.php?action=review&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Delete</a> | <a href=\"preferences.php?action=review&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Preferences</a>  | <a href=\"emails.php?email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Emails</a> | <a href=\"login.php?action=signout&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Sign Out</a> $hidden_admin</center><br>
+			<center><a href=\"roster.php?email=$auth_email&token=$ispraak_token\" class=\"cutelink3\" class=\"cutelink3\"> Roster </a> | <a href=\"sets.php?action=view&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Sets</a> | <a href=\"modify.php?action=review&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Edit</a> | <a href=\"delete.php?action=review&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Delete</a> | <a href=\"preferences.php?action=review&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Preferences</a>  | <a href=\"labs.php?action=review&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Labs</a>  | <a href=\"emails.php?email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Emails</a> | <a href=\"login.php?action=signout&email=$auth_email&token=$ispraak_token\" class=\"cutelink3\">Sign Out</a> $hidden_admin</center><br>
 			
 			";
 			
@@ -333,8 +359,10 @@ $j = $i+1;
 $key1=mysqli_result($myresult,$i,"mykey");
 $key2=mysqli_result($myresult,$i,"mykey2");
 $key3=mysqli_result($myresult,$i,"blocktext");
+//$key4=substr($key3, 0, 40);
 $key4=mb_strcut($key3, 0, 50, "UTF-8");
 $key5 = $key4 . ""; 
+//$key5 = "<div class=\"fadeoutmask\">$key5<div class=\"utf8mask\"></div></div>";
 $key6=date('m/d/y', $key1);
 $key7="<a href=\"stats.php?mykey=$key1&instructor_email=$auth_email&mykey2=$key2\" class=\"cutelink3\" target=\"_blank\">Stats</a>";
 $key8="<a href=\"sets.php?action=view&email=$auth_email&token=$ispraak_token\"><img src=\"images/gear.jpg\" width=\"15\" alt=\"Organize into set\"></a>";
@@ -342,12 +370,26 @@ $key8="<a href=\"sets.php?action=view&email=$auth_email&token=$ispraak_token\"><
 $new_link = "$domain_name/ispraak.php?mykey=$key1&mykey2=$key2"; 
 $copy_link = "<div class=\"tooltip\"><img src=\"images/copy_link.png\" class=\"smallicons\" height=\"15px\" width=\"15px\" id=\"$new_link\" onClick=\"clickURL(this.parentNode.children[0],myTooltip$j);\" onmouseout=\"outFunc(myTooltip$j)\"><span class=\"tooltiptext\" id=\"myTooltip$j\">Copy student link to clipboard</span></div>";
 
+//$grades_link = "<div class=\"tooltip\"><a href=\"$domain_name/grades.php?mykey=$key1&mykey2=$key2\" target=\"_blank\"><img src=\"images/grades.png\" class=\"smallicons\" height=\"15px\" width=\"15px\" id=\"$new_link\" onmouseout=\"outFunc2(myTooltipB$j)\"></a><span class=\"tooltiptext\" id=\"myTooltipB$j\">See student grades</span></div>";
+//$stats_link = "<div class=\"tooltip\"><a href=\"stats.php?mykey=$key1&instructor_email=$auth_email&mykey2=$key2\" target=\"_blank\"><img src=\"images/stats_icon.png\" class=\"smallicons\" height=\"15px\" width=\"15px\" id=\"$new_link\" onmouseout=\"outFunc2(myTooltipB$j)\"></a><span class=\"tooltiptext\" id=\"myTooltipB$j\">See activity stats</span></div>";
+//$launch_link = "<div class=\"tooltip\"><a href=\"ispraak.php?mykey=$key1&mykey2=$key2\" target=\"_blank\"><img src=\"images/launch.png\" class=\"smallicons\" height=\"15px\" width=\"15px\" id=\"$new_link\" onmouseout=\"outFunc2(myTooltipB$j)\"></a><span class=\"tooltiptext\" id=\"myTooltipB$j\">Start activity as student</span></div>";
+
+
 $grades_link = "<div class=\"tooltip\"><a href=\"$domain_name/grades.php?mykey=$key1&mykey2=$key2\" target=\"_blank\"><img src=\"images/grades.png\" class=\"smallicons\" height=\"15px\" width=\"15px\" id=\"$new_link\"></a><span class=\"tooltiptext\">See student grades</span></div>";
 $stats_link = "<div class=\"tooltip\"><a href=\"stats.php?mykey=$key1&instructor_email=$auth_email&mykey2=$key2\" target=\"_blank\"><img src=\"images/stats_icon.png\" class=\"smallicons\" height=\"15px\" width=\"15px\" id=\"$new_link\"></a><span class=\"tooltiptext\">See activity stats</span></div>";
 $launch_link = "<div class=\"tooltip\"><a href=\"ispraak.php?mykey=$key1&mykey2=$key2\" target=\"_blank\"><img src=\"images/launch.png\" class=\"smallicons\" height=\"15px\" width=\"15px\" id=\"$new_link\"></a><span class=\"tooltiptext\">Start activity as student</span></div>";
 
 
+
+
+//echo "<li>$key6 | <a href=\"$domain_name/ispraak.php?mykey=$key1&mykey2=$key2\" class=\"cutelink3\" target=\"_blank\">Link</a> | <a href=\"$domain_name/grades.php?mykey=$key1&mykey2=$key2\" target=\"_blank\" class=\"cutelink3\">Grades</a> | $key7 | $key5</li>"; 
+
 echo "<li>$key6 $copy_link $grades_link $stats_link $launch_link $key5</li>"; 
+
+//<a href=\"$domain_name/grades.php?mykey=$key1&mykey2=$key2\" target=\"_blank\" class=\"cutelink3\">Grades</a>
+//<a href=\"$domain_name/ispraak.php?mykey=$key1&mykey2=$key2\" class=\"cutelink3\" target=\"_blank\">→</a>
+
+//echo "<div class=\"fadeoutmask\"><li>$key6 | <a href=\"$domain_name/ispraak.php?mykey=$key1&mykey2=$key2\" class=\"cutelink3\" target=\"_blank\">Link</a> | <a href=\"$domain_name/grades.php?mykey=$key1&mykey2=$key2\" target=\"_blank\" class=\"cutelink3\">Grades</a> | $key7 | $key5</li><div class=\"utf8mask\"></div></div>"; 
 
 
 
@@ -377,7 +419,7 @@ else
 <div id=\"form_container\"><div id=\"headerBar\"></div>
 <form id=\"ispraak\" class=\"ispraak_form\"  method=\"post\" action=\"#\">
 <div class=\"form_description\">
-<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"> 
+<a href=\"index.html\"><img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"></a> 
 <br><br><br><center>Sorry, we are unable to authenticate you right now.<br><br><br>$login_button
 <br>		</div>		
 			</p>
@@ -400,7 +442,7 @@ else
 }
 
 //close your connection to the DB
-mysqli_close($msi_connect);
+//mysqli_close($msi_connect);
 
 
 ?>

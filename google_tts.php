@@ -31,6 +31,7 @@ use Google\Cloud\TextToSpeech\V1\VoiceSelectionParams;
 	$serviceAccountPath = "ispraak-neh-google.json"; 
 	
 	putenv('GOOGLE_APPLICATION_CREDENTIALS=../../ispraak-neh-google.json');
+    //$client->useApplicationDefaultCredentials();
 	
     $config = [
         'keyFilePath' => $serviceAccountPath,
@@ -48,6 +49,9 @@ $btext=$_GET['btext'];
 $voice_gender=$_GET['vg']; //Current options only MALE and FEMALE
 $voice_speed=$_GET['vs']; // Current options fast or slow
 
+//The btext variable has been URL encoded, must decode now
+$btext = urldecode($btext);
+
 //Remove the double asterix wildcard text so it is not spoken in TTS
 $double_asterix = array("**","••");
 $btext = str_replace($double_asterix, "", $btext);
@@ -56,6 +60,9 @@ $btext = str_replace($double_asterix, "", $btext);
 //this will be overwritten if a male voice does not exist below 
 
 $voice_gender = rand(0, 1) ? 'MALE' : 'FEMALE';
+
+//create cookie for gender selection
+setcookie("rand_gender", $voice_gender, time()+7200, '/'); 
 
 //Convert to Proper Language Code xx-XX for Google API
 
@@ -79,10 +86,11 @@ if ($mylang == "fr") { $language = "fr-FR"; }
 if ($mylang == "de") { $language = "de-DE"; }
 //no Male Voice for Greek 
 if ($mylang == "el") { $language = "el-GR"; $voice_gender = "FEMALE";}
-//no Hebrew Support (he)
+//new Hebrew Support in 2023
+if ($mylang == "he") { $language = "he-IL"; }
 if ($mylang == "hi") { $language = "hi-IN"; }
 //no Male Voice for Hungarian
-if ($mylang == "hu") { $language = "el-GR"; $voice_gender = "FEMALE";}
+if ($mylang == "hu") { $language = "hu-HU"; $voice_gender = "FEMALE";}
 if ($mylang == "id") { $language = "id-ID"; }
 if ($mylang == "it") { $language = "it-IT"; }
 if ($mylang == "ja") { $language = "ja-JP"; }
@@ -133,6 +141,8 @@ if ($mylang == "nl" || $mylang == "zh" || $mylang == "nl" ||  $mylang == "en" ||
 	mysqli_close($msi_connect);
 }
 
+//old method to include gender in file name
+//$fullpath = "audio_saves/".$mykey."_".$mykey2."_".$voice_gender.".mp3";
 
 $fullpath = "audio/".$mykey."_".$mykey2.".mp3";
 
@@ -145,32 +155,46 @@ $client = new TextToSpeechClient($config);
 $synthesisInputText = (new SynthesisInput())
     ->setText($btext);
 
-// build the voice request, select the language code ("en-US") and the ssml
-// voice gender
+//Build File Name based on Google's Voice Name Convention
+//This is necessary because Google's API is now ignoring gender preferences via setSsml
 
-//Assume ssmlGender is FEMALE unless indicated MALE
-
-//speakingRate
+//choices are Standard, Studio (US), News (US), Wavenet, or Neural (limited voices)
+$google_tts_engine_selection = "Standard";
+$google_voice_name = "undefined"; 
 
 if ($voice_gender == "MALE")
 {
-$voice = (new VoiceSelectionParams())
-    ->setLanguageCode($language)
-    ->setSsmlGender(SsmlVoiceGender::MALE);
-    
+	$google_voice_name = $language . '-' . $google_tts_engine_selection . '-B';
+		
+		//some voices for males have C or D lettering
+		
+		if ($mylang == "da") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
+		if ($mylang == "it") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
+		if ($mylang == "ja") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
+		if ($mylang == "ko") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
+		if ($mylang == "sv") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-D';  }
+	
+		//en-US exception since A and B voices are both male only for this region
+		//here we assign a female voice in the male condition as a single exception
+		if ($language == "en-US") {  $google_voice_name = $language . '-' . $google_tts_engine_selection . '-C';  }
+	
+	
 }
 else
 {
-$voice = (new VoiceSelectionParams())
-    ->setLanguageCode($language)
-    ->setSsmlGender(SsmlVoiceGender::FEMALE);
+
+	//all languages have female -A attribute 
+	
+	$google_voice_name = $language . '-' . $google_tts_engine_selection . '-A';
 }
 
 
-
-//voice was this :     ->setLanguageCode('en-US')
-//voice was this: --- ::FEMALE
-
+$voice = (new VoiceSelectionParams())
+    ->setName($google_voice_name)
+    ->setLanguageCode($language);
+    
+//create cookie for voice selection debugging
+setcookie("voice-name-for-tts", $google_voice_name, time()+7200, '/'); 
 
 // Effects profile
 $effectsProfileId = "telephony-class-application";
@@ -186,6 +210,7 @@ $response = $client->synthesizeSpeech($synthesisInputText, $voice, $audioConfig)
 $audioContent = $response->getAudioContent();
 
 // the response's audioContent is binary
+//file_put_contents('output.mp3', $audioContent);
 file_put_contents($fullpath, $audioContent);
 
 echo "<script>
@@ -208,7 +233,21 @@ function replay() {
 
 echo "<img src=\"images/replay.png\" onclick=\"replay()\" width=\"35\" align=\"right\"></a>"; 
 echo "<audio controls autoplay hidden id=\"audio1\"><source src=\"$fullpath\" type=\"audio/mpeg\">Your browser does not support the audio playback element.</audio>";
+  
+  
+/*
 
+Hiding the audio element will stop safari from autoplaying, but this will only happen on the first call
+
+echo "
+<audio controls>
+  <source src=\"$fullpath\" type=\"audio/mpeg\">
+Your browser does not support the audio element.
+</audio>";
+*/
+
+
+//echo 'Audio content written to "output.mp3"' . PHP_EOL;
 
 ?>
 

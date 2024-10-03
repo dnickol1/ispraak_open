@@ -50,7 +50,8 @@ if ($action == "reset")
 	$query = "UPDATE ispraak_unsubscribe SET email = 'deleted' WHERE email = '$email'"; 
 	$good_update = mysqli_query($msi_connect, $query);
 	mysqli_close($msi_connect);
-	$newURL = "login.php?email=$email&token=$ispraak_token"; 
+	$newURL = "login.php?email=$email&token=$ispraak_token";
+	//echo "success inserting record - $set_name for email is $email"; 
 	header('Location: '.$newURL);
 
 }
@@ -66,6 +67,7 @@ echo "$ispraak_header <form id=\"form_1007732\" class=\"ispraak_form\"  method=\
 if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {

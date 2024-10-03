@@ -115,6 +115,11 @@ $good_text = $block_text;
 $str1 = remove_punctuation_and_lowercase($good_text, $mylang);
 $str2 = remove_punctuation_and_lowercase($result, $mylang);
 
+//We also want to address the different apostrophes ’ vs ' by normalizing them all to ' 
+
+$str1 = apo_swap($str1);
+$str2 = apo_swap($str2);
+
 //Get a percentage calculated on similarity between two strings
 
 similar_text("$str1", "$str2", $sim);
@@ -129,13 +134,70 @@ $wc = '';
 if (strpos($haystack, $needle) !== false) 
 {
 	//there is at least ONE wildcard present
+	//$sim = findWildCardScore($good_text,$result); 
 	$sim = findWildCardScore($str1,$str2);
 
 }
 
+
+
+//now we have a score similarity either from STRICT or from wildcards
+//we need to see if the instructor has a preference for flexible scoring
+
+$flex_score_indicator = "";
+$msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
+$flexible_scoring = "Strict"; 
+$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_user_prefs2 where email='$iemail' ORDER BY id DESC");
+$rowcount=mysqli_num_rows($myresult);	
+if ($rowcount > 0) { $flexible_scoring =mysqli_result($myresult,0,"pref_02"); }
+if ($flexible_scoring == "Flexible")
+{
+	//instructor wants flexible scoring... now we check for the best existing score on this activity
+	
+	$flexkey1 =	$_SESSION['mykey'];
+	$flexkey2 =	$_SESSION['mykey2'];
+	
+	//check to see if there is already a flexible text on record
+	$my_flex_result = mysqli_query($msi_connect, "SELECT * FROM ispraak_flex where mykey = '$flexkey1' AND mykey2 = '$flexkey2' ORDER BY record DESC");
+	$num_flexible_texts = $my_flex_result->num_rows;
+	if ($num_flexible_texts > 0)
+	{
+		$top_text=mysqli_result($my_flex_result,0,"flex_text");
+	}
+
+	//now we determine if we replace the instructor MODEL text with the HIGHEST effort text
+		
+	$top_text = remove_punctuation_and_lowercase($top_text, $mylang);
+	$str2 = remove_punctuation_and_lowercase($str2, $mylang);
+
+	similar_text("$str2", "$top_text", $sim_flexible);
+	$sim_flexible=round($sim_flexible);
+		
+	//echo "<br>Original score is $sim and flexible score is $sim_flexible and new text is: <br>$top_text<br>";
+		
+	if ($sim_flexible > $sim && $sim > 90)
+		{
+			$str1 = $top_text; 
+			$sim = $sim_flexible; 
+			$flex_score_indicator = "་";
+			$flex_score_indicator = "<div class=\"tooltip\">꙳<span class=\"tooltiptext\" STYLE=\"font-size:x-small\">Flexible Scoring Applied</span></div> ";  				
+		}   
+		
+}
+
+
 //Display rounded score for similiarity of strings (wildcard scores are less precise and are word-based, not character-based)
 
-echo "<br><h3>Score of $sim% $wc</h3>";
+echo "<br><h3>Score of $sim%$wc$flex_score_indicator </h3>";
+
+
+
+
+
+
+//Display rounded score for similiarity of strings (wildcard scores are less precise and are word-based, not character-based)
+
+//echo "<br><h3>Score of $sim% $wc</h3>";
 
 //Connect language code to FORVO search codes
 
@@ -309,6 +371,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later!";
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 
@@ -341,7 +404,22 @@ if ($sim < 100)
    		{
    			echo "[<a href=\"http://www.forvo.com/search-$forvo_code/$thisword\" class=\"cutelink\" target=\"_blank\">$thisword</a>] ";
      
+     		//check for French homophones
+     		if ($mylang == "fr")
+     		{
+     			$check_fr_homophone = confirm_mistake($thisword, $str2); 
+     			if ($check_fr_homophone == true) { 
+     				//echo "<img src=\"images/flag_fr_homophone.png\" width=\"15\">"; 
+     				
+     				echo "<div class=\"tooltip\"><img src=\"images/flag_fr_homophone.png\" class=\"smallicons\" height=\"15px\"  id=\"$thisword\"></a><span class=\"tooltiptext\">You said <i>$thisword</i> correctly! This is a French homophone!</span></div> "; 
+     				
+     				} 
+	 			
+     		}
    			//for each bad word, throw it into the DB under ispraak_stats
+   			
+   			//words with apostrophes not inserting and crashign under php 8.0
+   			$thisword = mysqli_real_escape_string($msi_connect, $thisword);
    	
    			$activity_id9 = $_SESSION['mykey'];
    			$misc9 = $activity_id_2; 
@@ -360,12 +438,14 @@ if ($sim < 100)
 $top_score = 0; 
 $activity_id9 = $_SESSION['mykey'];
 $result2020 = mysqli_query($msi_connect, "SELECT * FROM ispraak_grades WHERE activity_id='$activity_id9' ORDER BY score DESC");
-$row2020 = mysqli_fetch_array($myresult2020);
+//$row2020 = mysqli_fetch_array($myresult2020);
 $num2020 = $result2020->num_rows;
 $i2 = 0; 
 $top_score=mysqli_result($result2020,$i2,"score");
 
-$praise = "<br><br>Your score has been saved and sent to $iemail<br><br>"; 
+$temail_hide = hide_email($iemail);
+ 
+$praise = "<br><br>Your score has been saved and sent to $temail_hide<br><br>"; 
 
 if ($top_score <= $sim)
 {
@@ -379,12 +459,16 @@ $praise2 = ReturnMessage($mylang, $sim);
 echo "<h2>$praise2</h2>"; 
 
 
+
 //Update the DIV tag for activityset if this is a set
 
-$active_set = $_COOKIE["active_set"];
-$array1 = $_COOKIE["array1"];
-$array1 = json_decode($_COOKIE['array1'], true);
-$a1_count=count($array1);
+$active_set = $_COOKIE["active_set"] ?? 'NA';
+if ($active_set != "NA")
+{
+	$array1 = $_COOKIE["array1"];
+	$array1 = json_decode($_COOKIE['array1'], true);
+	$a1_count=count($array1);
+}
 
 if ($active_set == "true")
 {
@@ -395,8 +479,15 @@ if ($active_set == "true")
 	
 		echo "<script> parent.document.getElementById('goForward').style.display=\"inline\"; </script>";	
 	}
+	
+		else
+	{
+			echo "<script> parent.document.getElementById('main_body').style.background = \"#b3bec4 url('images/end_of_set_background.gif') repeat right top\";</script>";	
 
+	}
+	
 }
+
 
 //Save this students score into the database
 
@@ -418,7 +509,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
-
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 //Slashes have already been escaped, but we need to further prepare strings for mySQLi insertion

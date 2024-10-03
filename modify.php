@@ -50,16 +50,50 @@ $auth_time=mysqli_result($myresult,$j,"auth_time");
 $auth_time_expire = $auth_time + 25200; 
 $ispraak_time = time();
 
+//see if Flexible Scoring is enabled and activiate button if it is.
+
+$flexible_button = ""; 
+$flexible_scoring = "Strict"; 
+$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_user_prefs2 where email='$email' ORDER BY id DESC");
+$rowcount=mysqli_num_rows($myresult);	
+if ($rowcount > 0) { $flexible_scoring =mysqli_result($myresult,0,"pref_02"); }
+if ($flexible_scoring == "Flexible" && $action == "edit" || $action=="flex")
+{
+
+	//insert button on the edit view for flexible scoring
+	$flexible_button = "<a href=\"modify.php?token=$ispraak_token&email=$email&action=flex&mykey=$mykey&mykey2=$mykey2\" class=\"cutelink3\"><img src = \"images/flex.png\" align=\"right\" width=\"40\"></a>";
+
+	//let's  check for the best existing score on this activity
+	$result_flexible_score = mysqli_query($msi_connect, "SELECT * FROM ispraak_grades WHERE activity_id='$mykey' ORDER BY score DESC");
+	$row_flexible_score = mysqli_fetch_array($result_flexible_score);
+	$num_flexible_score = $result_flexible_score->num_rows;
+	
+	$top_text = "Replace this text with alternate text for this activity.";
+	$top_score = "0";
+	
+	if ($num_flexible_score > 0) 
+	{
+		$index_flexible = 0; 
+		$top_score=mysqli_result($result_flexible_score,$index_flexible,"score");
+		$top_text=mysqli_result($result_flexible_score,$index_flexible,"effort_text");
+	}
+
+	//you now have TOP TEXT and TOP SCORE 
+
+}
+
+//end of flexible scoring
+
+
 echo "$ispraak_header
 	
 <form id=\"form_1007732\" class=\"ispraak_form\"  method=\"post\" action=\"#\">
 			$ispraak_logo
 <a href=\"login.php?token=$ispraak_token&email=$email\" class=\"cutelink3\"><img src = \"images/gohome.png\" align=\"right\" width=\"40\"></a>			
+		$flexible_button
 			<br><br><br>
 					
 ";
-
-
 
 
 if ($auth_time_expire > $ispraak_time)
@@ -80,6 +114,8 @@ if ($permission == "good")
 		//define the query
 		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey = '$mykey' AND mykey2 = '$mykey2'");
 		$text=mysqli_result($myresult,0,"blocktext");
+		$language=mysqli_result($myresult,0,"language");
+			
 		
 		//remind user that a TTS file was generated with the previous text
 		$file_exists_warning = "<li><p class = \"guidelines_on2\">Changes made here will not affect existing student scores or aggregate activity stats.</p></li>"; 
@@ -120,8 +156,136 @@ if ($permission == "good")
 		";
 		
 		
+		//adjust display for RTL languages
+		 
+		if($language=='ar' || $language=='fa' || $language=='he' || $language=='ur')
+		{
+			echo"<script>document.getElementById(\"edit_text\").style.textAlign = \"right\"</script>";
+
+		}
+		else
+		{
+			echo"<script>document.getElementById(\"edit_text\").style.textAlign = \"left\"</script>";
+		}
+
+		
+		
+		
 		//end bracket for editing instructor name from activity
 	}
+
+
+//new action for flexible scoring edit
+
+if ($action == "flex")
+	{
+
+		$mykey = mysqli_real_escape_string($msi_connect, $mykey);
+		$mykey2 = mysqli_real_escape_string($msi_connect, $mykey2);
+		$email = mysqli_real_escape_string($msi_connect, $email);
+
+		//define the query
+		$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey = '$mykey' AND mykey2 = '$mykey2'");
+		$text=mysqli_result($myresult,0,"blocktext");
+		$language=mysqli_result($myresult,0,"language");
+		
+		if ($top_score == 100)
+		{
+			$flex_note = "Perfect scores found. This activity may not need alternate text. "; 
+		
+		}
+		else
+		{
+			$flex_note = "Current best score is: $top_score. Suggested text in box.";
+		
+		}
+		
+		if ($top_score == 0)
+		{
+			$top_text = "$text"; 
+		}
+		
+		//check to see if there is already a flexible text on record
+		$myresult2 = mysqli_query($msi_connect, "SELECT * FROM ispraak_flex where mykey = '$mykey' AND mykey2 = '$mykey2' ORDER BY record DESC");
+		$num_flexible_texts = $myresult2->num_rows;
+		if ($num_flexible_texts > 0)
+		{
+			$flex_note = "Existing flexible text already saved. ";
+			$top_text=mysqli_result($myresult2,0,"flex_text");
+		}
+		
+		
+		//show editing window
+		
+		echo "
+		
+		<form id=\"iSpraak\" class=\"ispraak_form\"  method=\"post\" action=\"modify.php\">
+		
+		<ul>
+		
+		<li><p class = \"guidelines_on2\">$flex_note</p></li>
+		
+			<textarea id=\"edit_text\" name=\"edit_text\" id=\"edit_text\" class=\"element textarea modify\" maxlength=\"370\">$top_text</textarea> 
+				
+			<br><br><center>
+			<input id=\"saveForm\" class=\"button4\" type=\"submit\" name=\"submit\" value=\"Edit Flexible Scoring Text\" /></center>
+			</center>
+			  <input type=\"hidden\" name=\"action\" id=\"action\" value=\"update_flex\"/> 
+			  <input type=\"hidden\" name=\"email\" id=\"email\" value=\"$auth_email\"/> 
+			  <input type=\"hidden\" name=\"token\" id=\"token\" value=\"$ispraak_token\"/> 
+			  <input type=\"hidden\" name=\"mykey\" id=\"mykey\" value=\"$mykey\"/> 
+			  <input type=\"hidden\" name=\"mykey2\" id=\"mykey2\" value=\"$mykey2\"/> 
+		
+		</ul>
+		</form>	
+		<br>
+		
+		
+		
+		";
+		
+		
+		//adjust display for RTL languages
+		 
+		if($language=='ar' || $language=='fa' || $language=='he' || $language=='ur')
+		{
+			echo"<script>document.getElementById(\"edit_text\").style.textAlign = \"right\"</script>";
+
+		}
+		else
+		{
+			echo"<script>document.getElementById(\"edit_text\").style.textAlign = \"left\"</script>";
+		}
+
+		
+		
+		
+		//end bracket for editing instructor name from activity
+	}
+
+
+	if ($action == "update_flex")
+	{
+	
+		$mykey = mysqli_real_escape_string($msi_connect, $mykey);
+		$mykey2 = mysqli_real_escape_string($msi_connect, $mykey2);
+		$edit_text = mysqli_real_escape_string($msi_connect, $edit_text);
+	
+		//define query and check for error
+		$query = "INSERT INTO ispraak_flex VALUES ('$edit_text','$mykey', '$mykey2','')";
+		$good_insert = mysqli_query($msi_connect, $query);
+
+		$action = "review";
+	}
+
+
+
+
+
+
+
+
+
 
 	if ($action == "update")
 	{
@@ -166,6 +330,7 @@ if ($permission == "good")
 			$key2=mysqli_result($myresult,$i,"mykey2");
 			$key3=mysqli_result($myresult,$i,"blocktext");
 			$key4=mb_strcut($key3, 0, 55, "UTF-8");
+			//$key4=substr($key3, 0, 50);
 			$key5 = $key4 . ""; 
 			$key6=date('m/d/y', $key1);
 			$key7="<a href=\"modify.php?action=edit&email=$auth_email&token=$ispraak_token&mykey=$key1&mykey2=$key2\" class=\"cutelink3\">EDIT</a>";

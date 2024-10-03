@@ -3,6 +3,7 @@
 //https://github.com/AdnanHussainTurki/microsoft-api-php#readme
 //The below credentials will expire periodically
 //Credentials associated with Azure Account help@ispraak.com
+//Go to Entra in Azure, then update Certicicates and Secrets
 
 session_start();
 require "../../vendor/autoload.php";

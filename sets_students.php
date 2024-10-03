@@ -23,7 +23,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	$error_saving_db = "<p style=\"color:red\">Database connection: X</span>";
-  	
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 else
 {
@@ -82,6 +82,7 @@ else
 	$mykey=mysqli_result($myresult2,$i,"mykey");
 	$mykey2=mysqli_result($myresult2,$i,"mykey2");
 	$newURL = "ispraak.php?mykey=$mykey&mykey2=$mykey2"; 
+	//header('Location: '.$newURL);
 	
 	echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
 <title>iSpraak</title><link rel=\"stylesheet\" type=\"text/css\" href=\"css/ispraak.css\" media=\"all\">
@@ -95,6 +96,11 @@ else
 You can track your progress at the bottom of the screen. 
 <br>
 <br>
+			<div class=\"alert\" id=\"alert\" style=\"display:none\">
+  <span class=\"closebtn\" onclick=\"this.parentElement.style.display='none';\">&times;</span> 
+  <strong>Warning: Google Chrome is strongly recommended for iSpraak voice activities! You may experience errors with this browser if you continue.</strong>
+</div>	
+
 <br>
 <br>
 <a href=\"$newURL\" class=\"button4\">Get Started!</a>
@@ -109,6 +115,20 @@ You can track your progress at the bottom of the screen.
 <div class = \"activityset\" id=\"activityset\"> This set has $rowcount_2 activities remaining. </div>	
 	
 	</body>
+	
+<script>
+    if (!('webkitSpeechRecognition' in window)) 
+	{
+	document.getElementById(\"alert\").style.display = \"block\";
+	}
+	
+	notChrome();
+	
+</script>		
+	
+	
+	
+	
 </html>";
 	
 	

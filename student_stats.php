@@ -2,9 +2,11 @@
 
 /*
 
-This page displays all grades for a given activity key pair (mykey and mykey2) and can be 
-sorted by student name or by date completed. Displayed information includes name, email,
-score, date completed, and number of mistakes. 
+This page takes student email and displays a history of ALL missed words, all submitted
+activities with scores, and a link to build a custom student set
+
+Once this page is generated from roster.php, the URL is meant to be shared directly
+with the student. 
 
 */
 
@@ -68,7 +70,7 @@ echo"<center> $email has completed $num_distinct unique activities!<br><br></cen
 
 
 $missed_words_message = "<center>You have no recently missed words.<br>"; 
-if ($rowcount > 1) {
+if ($rowcount > 0) {
 $missed_words_message = "Your missed words: <br><br><center>"; 
 }
 
@@ -126,8 +128,9 @@ while($j<$num2)
 	$date_end = date('m/d/y', $time);
 	$mykey2=mysqli_result($query_distinct,$j,"misc");
 	$score=mysqli_result($query_distinct,$j,"score");
+
 	$effort_text=mb_strcut($effort, 0, 35, "UTF-8");
-	
+
 	if ($cached_activity_id == $aid)
 	{
 		$multiple_submits++; 

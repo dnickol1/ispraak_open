@@ -24,7 +24,7 @@ $msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
 if (mysqli_connect_errno())
 {
   	echo "Unable to connect to the database. Please try again later.";
-  	
+  	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
 //Get mykey from query string & declare session variable
@@ -136,17 +136,19 @@ $synth_button = "";
 //Assume that it SHOULD be displayed and turn it OFF for languages it won't work
 //iSpeech is deactivated by the followin call - $i_speech = ""; 
 
+//To safely send the btext variable over a query string, we must encode that string
+$encoded_btext = urlencode($c_stripped);
+
 //iSpeech is the TTS vendor on iSpraak.com and Google is the vendor on iSpraak.net
 
 $mylang = $a; 
 $i_speech = ""; 
-$i_speech = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&mykey2=$mykey2&btext=$c_stripped\" align=\"right\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
+$i_speech = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&mykey2=$mykey2&btext=$encoded_btext\" align=\"right\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
 
 //arabic needs to have this iframe aligned left because it is a right-to-left language
 //and otherwise causes display problems
-//this is probably true for the other RTL languages, need to confirm! 
 
-$i_speech_arabic = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&btext=$c_stripped\" align=\"left\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
+$i_speech_arabic = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&btext=$encoded_btext\" align=\"left\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
 
 //Make instructor e-mail into session variable
 
@@ -165,7 +167,8 @@ $mylang = $row["language"];
 $iframe_text = "<br><br>Error: Unable to determine source language!<br><br>";
 
 
-if ($mylang == "am" || $mylang == "hr" || $mylang == "he" || $mylang == "fa" || $mylang == "sw" || $mylang == "ur" || $mylang == "zu")
+
+if ($mylang == "am" || $mylang == "hr" || $mylang == "fa" || $mylang == "sw" || $mylang == "ur" || $mylang == "zu")
 {
 	$i_speech = "";
 }
@@ -207,6 +210,7 @@ $pinyin = "";
 if ($mylang == "he")
 {
 $bt = $_SESSION['block_text']; 
+//$pinyin = transliterator_transliterate('Any-Latin; Hiragana-Latin; Lower();', $bt);
 $api_key = $azure_api_tranliteration_key;
 $pinyin = api_Transliterate($mylang, $bt, $api_key);
 
@@ -220,14 +224,11 @@ if ($mylang == "zh")
 
 $bt = $_SESSION['block_text']; 
 
-
 $pinyin = transliterator_transliterate('Any-Latin; Any-zh; Lower();', $bt);
-
 
 $zhtext = "<img alt=\"iSpraak\" src=\"images/pinyin.png\" align=\"right\" width=\"30\" id=\"998\" onclick=\"myFunction5()\">"; 
 }
 
-//Russian has a transliteration option for Latin text through Glosbe
 
 if ($mylang == "ru")
 {
@@ -237,7 +238,6 @@ $pinyin = transliterator_transliterate('Any-Latin; Russian-Latin/BGN; Lower();',
 
 $zhtext = "<img alt=\"iSpraak\" src=\"images/latin.png\" align=\"right\" width=\"30\" id=\"998\" onclick=\"myFunction5()\">"; 
 }
-
 
 //Thai has a transliteration option
 
@@ -300,6 +300,7 @@ $zhtext = "<img alt=\"iSpraak\" src=\"images/latin.png\" align=\"right\" width=\
 if ($mylang == "ar")
 {
 $bt = $_SESSION['block_text']; 
+//$pinyin = transliterator_transliterate('Any-Latin; Arabic-Latin; Lower();', $bt);
 
 $api_key = $azure_api_tranliteration_key;
 $pinyin = api_Transliterate($mylang, $bt, $api_key);
@@ -337,6 +338,7 @@ $zhtext = "<img alt=\"iSpraak\" src=\"images/latin.png\" align=\"right\" width=\
 }
 
 
+
 if ($mylang == "ar")
 {
 $iframe_text = "<iframe src=\"languages/arabic_sa.html\" width=\"600\" height=\"340\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
@@ -355,15 +357,16 @@ if ($mylang == "sv") { $synth = "none"; }
 
 //If a TTS file already exists in the directory, we are going to turn off the TTS icons
 $tts_file_exists= 'audio/'.$mykey.'_'.$mykey2.'.mp3'; 
+//echo "debug: $tts_file_exists";
 
 if (file_exists($tts_file_exists))
 {
 //file confirmed to reside on server, do not regenerate it
 //rather just put it into the default audio player
-$b = '../'.$tts_file_exists; 
+$b = '../'.$tts_file_exists;
+//echo "debug: b"; 
 
 }
-
 
 
 $player_text = " ";
@@ -372,7 +375,6 @@ $player_text = " ";
 if ($b == 1)
 {
 //Do not show the Green-Audio-Player before the TTS is generated
-//Eventually show / hide this element based on existence of audio file
 }
 
 //Decide if we should display the MP3 audio player or not
@@ -381,6 +383,7 @@ if ($b == 1)
 
 if ($b !== "1")
 {
+
 
 $player_text = " 
 
@@ -534,7 +537,7 @@ $extra_audio2 = "";
 $iframe_text2 = ""; 
 $iframe_text2 = "<iframe src=\"premium_tri.php?lang=$mylang&mykey=$mykey&btext=$c_stripped\" align=\"right\" width=\"135\" height=\"50\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
 
-//big change to JUST one page rather than 26 near identical HTML pages
+//replaced 36 pages with single page for all languages
 $iframe_text = "<iframe src=\"asr_languages.html\" width=\"600\" height=\"340\" scrolling=\"no\" frameBorder=\"0\"></iframe>";
 
 //make sure a student gets redirected if nothing set for these variables -- it means someone just shared the link from the wrong spot
@@ -542,7 +545,6 @@ $iframe_text = "<iframe src=\"asr_languages.html\" width=\"600\" height=\"340\" 
 if ($student_email == "" || $student_name == "")
 {
 	header('Location: ispraak.php?mykey='.$mykey.'&error=86&mykey2='.$mykey2);
-	
 }
 else
 {
@@ -596,12 +598,14 @@ setcookie("array1", $a1, time()+7200, '/');
 setcookie("array2", $a2, time()+7200, '/'); 
 
 echo "<div id=\"goForward\" class=\"goForward\" style=\"display:none;\"><a href=\"$new_array_URL\" class=\"cutelink4\"><img src=\"images/arrow_set.png\" class=\"pulse2\"></a></div>";
+//$activityset_next = "<div id=\"activityset_next\" style=\"display:none;\"> Go to next! <a href=\"$new_array_URL\" class=\"cutelink3\"><img src=\"images/arrow_set.png\" width=\"25\" style=\"display:inline; padding-left: 10px; vertical-align: middle;\"></a></div>";
 $activityset_next = "<div id=\"activityset_next\" style=\"display:none;\"> Go to next! <a href=\"$new_array_URL\" class=\"cutelink3\"><img src=\"images/arrow_set.png\" class=\"pulse\"></a></div>";
 
 
 if ($a1_count < 1)
 {
-$activityset_next = "<div id=\"activityset_next\" style=\"display:none;\"> Great Job, this set is Complete! <img src=\"images/checkmark.png\" class=\"pulse\"></div>";
+$activityset_next = "<div id=\"activityset_next\" style=\"display:none;\"> Set is Complete!<img src=\"images/checkmark.png\" class=\"pulse\">  
+</div>";
 
 }
 
@@ -637,7 +641,7 @@ echo "
 		<form id=\"ispraak\" class=\"ispraak_form\"  method=\"post\" action=\"makeit.php\">
 					<div class=\"form_description\">
 						
-					<img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"> 
+					<a href=\"index.html\"><img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\" align=\"left\"></a> 
 			
 			$zhtext $synth_button
 			<br>

@@ -35,7 +35,8 @@ if (mysqli_connect_errno())
   	//echo "Failed to connect to MySQL because: " . mysqli_connect_error();
 }
 
-//Example: https://www.ispraak.net/stats.php?mykey=1662152565&instructor_email=dnickol1@slu.edu&mykey2=Jb12984f0ba8d4740ef280bad88f73e7
+//Example: https://www.ispraak.net/stats.php?mykey=1651199103&instructor_email=dnickol1@slu.edu (reference)
+//Updated example: https://www.ispraak.net/stats.php?mykey=1662152565&instructor_email=dnickol1@slu.edu&mykey2=Jb12984f0ba8d4740ef280bad88f73e7
 
 //Get mykey from query string & declare session variable
 //If no variable found in query string, just initialize as Not Available
@@ -45,12 +46,15 @@ $email = $_GET['instructor_email'] ?? 'NA';
 
 $readable_date=date('m/d/y', $mykey);
 
-
 //Get variables from iSpraak GRADES table
-
 
 $result = mysqli_query($msi_connect,"SELECT * FROM ispraak_stats WHERE activity_id='$mykey' AND misc='$mykey2' AND instructor_email='$email' ORDER BY missed_word ASC");
 $num=mysqli_num_rows($result);
+
+
+$temail_hide = hide_email($email);
+ 
+
 
 if ($num < 1)
 {
@@ -68,6 +72,21 @@ if ($num < 1)
 }
 else{
 
+
+//confirm if we should show the IPA selector, based on labs preferences
+
+$ipa_stats_link = "";
+$ipa_stats_status = "Disabled"; 
+//$flex_score_indicator = "";
+$msi_connect = mysqli_connect($mysqlserv,$username,$password,$database);
+//$flexible_scoring = "Strict"; 
+$myresult = mysqli_query($msi_connect, "SELECT * FROM ispraak_user_prefs2 where email='$email' ORDER BY id DESC");
+$rowcount=mysqli_num_rows($myresult);	
+if ($rowcount > 0) { $ipa_stats_status =mysqli_result($myresult,0,"pref_04"); }
+if ($ipa_stats_status == "Enabled")
+{
+	$ipa_stats_link = " / <a href=\"stats_ipa.php?mykey=$mykey&instructor_email=$email&mykey2=$mykey2\" class=\"cutelink3\">IPA</a>";
+}
 
 echo "
 <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
@@ -90,21 +109,18 @@ echo "
                   
                    <img style=\"float: left; padding: 0px 20px 0px 0px\" src=\"images/logo5.png\" height=\"35\" alt=\"iSpraak-Logo\">
 
-			<br><br><br>Statistical Error Frequency Count since $readable_date for $email </b> 
+			<br><br><br>Statistical Error Frequency Count since $readable_date for $temail_hide</b> 
 			
 			<br></p>
 						
 		</div>						
 			<ul >";
 			
-//Calculate some stats for teacher, but don't do for Chinese or Japanese
-//ja or zh
-//if ($a !== "ja" && $a !== "zh")
 
 //want this stuff to float left so the iframe and stats graphics can float right
 
 echo "<div style=\"float:left;width:300px\">";
-echo "<SPAN STYLE=\"background-color: #E6E6E6\">Missed Words Stats</SPAN> / <a href=\"stats_progress.php?mykey=$mykey&mykey2=$mykey2&instructor_email=$email\" class=\"cutelink3\">Progress Stats</a> <br><br>"; 
+echo "<SPAN STYLE=\"background-color: #E6E6E6\">Missed Words Stats</SPAN> / <a href=\"stats_progress.php?mykey=$mykey&mykey2=$mykey2&instructor_email=$email\" class=\"cutelink3\">Progress Stats</a> $ipa_stats_link<br><br>"; 
 
 
 $first_word = mysqli_result($result,0,"missed_word");
@@ -112,10 +128,15 @@ $stand_count = 0;
 $darray = array();
 
 
+//escape words
+$first_word = mysqli_real_escape_string($msi_connect, $first_word);
+
+
+
 $resultC = mysqli_query($msi_connect,"SELECT * FROM ispraak_stats WHERE activity_id='$mykey' AND missed_word='$first_word'");
 $numC=mysqli_num_rows($resultC);
 
-
+$first_word = stripslashes($first_word);
 
 //nicer display if possible
 $equal_columns = ($num / 2);
@@ -123,13 +144,7 @@ $equal_columns = round($equal_columns);
 echo "<div class=\"row\"><div class=\"column\">";
 
 
-
-
-
-echo "$first_word ($numC) <br><br>"; 
-
-
-
+echo "<a href=\"word_stats.php?mykey=$mykey&instructor_email=$email&missed_word=$first_word\" target=\"_blank\" class=\"cutelink2\">$first_word</a> ($numC) <br><br>"; 
 
 
 for ($i = 0; $i < $num; $i++)
@@ -143,13 +158,18 @@ for ($i = 0; $i < $num; $i++)
   
   if ($mw !== "$first_word")
   {
-  	echo "$mw "; 
+  	echo "<a href=\"word_stats.php?mykey=$mykey&instructor_email=$email&missed_word=$mw\" target=\"_blank\" class=\"cutelink2\">$mw</a>"; 
   	
+  	
+  	//escape words
+	$mw = mysqli_real_escape_string($msi_connect, $mw);
+
+
   	
   	$resultB = mysqli_query($msi_connect,"SELECT * FROM ispraak_stats WHERE activity_id='$mykey' AND missed_word='$mw'");
 	$numB=mysqli_num_rows($resultB);
 
-  	echo "($numB) <br><br>"; 
+  	echo " ($numB) <br><br>"; 
   	
   	$stand_count = 1;
   	$first_word = $mw;
@@ -192,9 +212,11 @@ arsort($counts);
   $temp_value=array_values($counts);
   $word1 = array_shift($temp_value);
 
+  //echo "mm: $key1 and $word1";
 
   unset($counts["$key1"]) ;
   
+//print_r($counts);
 
 //get second word and key woot
 
@@ -207,6 +229,7 @@ arsort($counts);
   $temp_value2= array_values($counts);
   $word2 = array_shift($temp_value2);
 
+  //echo "mm: $key1 and $word1";
 
   unset($counts["$key2"]) ;
 
@@ -221,6 +244,7 @@ arsort($counts);
   $temp_value3=array_values($counts);
   $word3 = array_shift($temp_value3);
 
+  //echo "mm: $key1 and $word1";
 
   unset($counts["$key3"]) ;
 
@@ -236,6 +260,8 @@ arsort($counts);
   $temp_value4=array_values($counts);
   $word4 = array_shift($temp_value4);
 
+  //echo "mm: $key1 and $word1";
+
   unset($counts["$key4"]) ;
 
   //get the fifth word and key woot
@@ -250,12 +276,16 @@ arsort($counts);
   unset($counts["$key5"]) ;
 
 
+   //you cannot send a % sign to an iframe
+   if ($key1 == '%') { $key1 = "§";}
+   if ($key2 == '%') { $key2 = "§";}
+   if ($key3 == '%') { $key3 = "§";}
+   if ($key4 == '%') { $key4 = "§";}
+   if ($key5 == '%') { $key5 = "§";}
+
+   
 //for certain languages, we need to turn off the graphing label
 //since the characters will just show up as boxes
-//this may be a non-issue if we dont allow acccess to this page
-//for those languages
-
-//this may also NOT be true with the NEWER version of JPGRAPH
 
 
 $myresult2 = mysqli_query($msi_connect, "SELECT * FROM ispraak where mykey='$mykey' AND email='$email'");

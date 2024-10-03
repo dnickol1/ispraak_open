@@ -22,9 +22,13 @@ $mylang=$_GET['lang'];
 $btext=$_GET['btext'];
 $option = "all";
 
-//Currently no TTS support for Amharic, Croatian, Hebrew, Farsi, Swahili, Urdu or Zulu 
 
-if ($mylang == "am" || $mylang == "hr" || $mylang == "he" || $mylang == "fa" || $mylang == "sw" || $mylang == "ur" || $mylang == "zu")
+//Sending over URL so must re-encode
+$btext = urlencode($btext);
+
+//Currently no TTS support for Amharic, Croatian, Farsi, Swahili, Urdu or Zulu 
+
+if ($mylang == "am" || $mylang == "hr" || $mylang == "fa" || $mylang == "sw" || $mylang == "ur" || $mylang == "zu")
 {
 $option = "No TTS available";
 echo "<img src=\"images/inactive_speaker.png\" width=\"40\"  align=\"right\">";
